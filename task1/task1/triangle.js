@@ -7,18 +7,51 @@ window.onload = function init()
     gl = WebGLUtils.setupWebGL(canvas);
     if (!gl) { alert("Cannot obtain WebGL"); }
 
-    const roofVs = [-1, 0.25, 0, 1, 1, 0.25]
+    const roofVs = [
+        -1.00,  0.25,
+         0.00,  1,
+         1.00,  0.25,
+    ]
     const baseVs = [
-        -0.75, -1,
-        -0.25, -1,
-        -0.75, 0.25,
-        -0.25, -0.4,
-        0.75, 0.25,
-        0.25, -0.4,
-        0.75, -1,
-        0.25, -1,
+        -0.75,  -1,
+        -0.25,  -1,
+        -0.75,   0.25,
+        -0.25,  -0.4,
+         0.75,   0.25,
+         0.25,  -0.4,
+         0.75,  -1,
+         0.25,  -1,
     ];
-    const doorVs = [-0.2, -0.95, -0.2, -0.45, 0.25, -1, 0.25, -0.4]
+    const doorVs = [
+        -0.2,   -0.95,
+        -0.2,   -0.45,
+         0.25,  -1,
+         0.25,  -0.4
+    ]
+
+    const roofCs = [
+        0.4, 0, 0,
+        0.8, 0, 0,
+        0.4, 0, 0,
+    ]
+
+    const baseCs = [
+        0.4, 0.4, 0.5,
+        0.8, 0.8, 0.5,
+        0.4, 0.4, 0.5,
+        0.8, 0.8, 0.5,
+        0.4, 0.4, 0.5,
+        0.8, 0.8, 0.5,
+        0.4, 0.4, 0.5,
+        0.8, 0.8, 0.5,
+    ]
+
+    const doorCs = [
+        0.6, 0.4, 0.5,
+        1.0, 0.7, 0.6,
+        0.6, 0.4, 0.5,
+        1.0, 0.7, 0.6,
+    ]
 
     const vs = roofVs.concat(baseVs).concat(doorVs);
 
@@ -27,7 +60,7 @@ window.onload = function init()
         1, 0, 0, 1,
         1, 1, 0, 1,
     ]
-    cs = cs.concat(cs).concat(cs).concat(cs).concat(cs);
+    cs = roofCs.concat(baseCs).concat(doorCs);
 
     // Configure WebGL
     gl.viewport(0, 0, canvas.width, canvas.height);
@@ -69,7 +102,7 @@ function render(verts, cols, splits, mode, program) {
 
     // Associate our shader variables with our data buffer
     var vColor = gl.getAttribLocation(program, "vColor");
-    gl.vertexAttribPointer(vColor, 4, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(vColor, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vColor);
 
     gl.clear(gl.COLOR_BUFFER_BIT);
