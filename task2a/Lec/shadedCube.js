@@ -129,6 +129,7 @@ window.onload = function init() {
     document.getElementById("ButtonZ").onclick = function(){axis = zAxis;};
     document.getElementById("ButtonT").onclick = function(){flag = !flag;};
 
+   // uniform4fv is used to pass a vector of 4 floats to the shader
     gl.uniform4fv(gl.getUniformLocation(program, "ambientProduct"),
        flatten(ambientProduct));
     gl.uniform4fv(gl.getUniformLocation(program, "diffuseProduct"),

@@ -1,32 +1,31 @@
 var gl;
 var points;
-window.onload = function init()
-{
+window.onload = function init() {
     var canvas = document.getElementById("gl-canvas");
-    
+
     gl = WebGLUtils.setupWebGL(canvas);
     if (!gl) { alert("Cannot obtain WebGL"); }
 
     const roofVs = [
-        -1.00,  0.25,
-         0.00,  1,
-         1.00,  0.25,
+        -1.00, 0.25,
+        0.00, 1,
+        1.00, 0.25,
     ]
     const baseVs = [
-        -0.75,  -1,
-        -0.25,  -1,
-        -0.75,   0.25,
-        -0.25,  -0.4,
-         0.75,   0.25,
-         0.25,  -0.4,
-         0.75,  -1,
-         0.25,  -1,
+        -0.75, -1,
+        -0.25, -1,
+        -0.75, 0.25,
+        -0.25, -0.4,
+        0.75, 0.25,
+        0.25, -0.4,
+        0.75, -1,
+        0.25, -1,
     ];
     const doorVs = [
-        -0.2,   -0.95,
-        -0.2,   -0.45,
-         0.25,  -1,
-         0.25,  -0.4
+        -0.175, -0.975,
+        -0.175, -0.45,
+        0.25, -1,
+        0.25, -0.4
     ]
 
     const roofCs = [
@@ -37,20 +36,20 @@ window.onload = function init()
 
     const baseCs = [
         0.4, 0.4, 0.5,
-        0.8, 0.8, 0.5,
+        0.5, 0.5, 0.6,
         0.4, 0.4, 0.5,
-        0.8, 0.8, 0.5,
+        0.5, 0.5, 0.6,
         0.4, 0.4, 0.5,
-        0.8, 0.8, 0.5,
+        0.5, 0.5, 0.6,
         0.4, 0.4, 0.5,
-        0.8, 0.8, 0.5,
+        0.5, 0.5, 0.6,
     ]
 
     const doorCs = [
-        0.6, 0.4, 0.5,
-        1.0, 0.7, 0.6,
-        0.6, 0.4, 0.5,
-        1.0, 0.7, 0.6,
+        0.6, 0.4, 0.4,
+        1.0, 0.6, 0.4,
+        0.6, 0.4, 0.4,
+        1.0, 0.6, 0.4,
     ]
 
     const vs = roofVs.concat(baseVs).concat(doorVs);
@@ -64,16 +63,16 @@ window.onload = function init()
 
     // Configure WebGL
     gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.clearColor( 0.9, 0.95, 1.0, 1.0 );
-    
+    gl.clearColor(0.9, 0.95, 1.0, 1.0);
+
     // Load shaders and initialize attribute buffers
     var program = initShaders(gl, "vertex-shader", "fragment-shader");
     gl.useProgram(program);
 
     render(vs, cs, [
-        roofVs.length/2,
-        baseVs.length/2,
-        doorVs.length/2
+        roofVs.length / 2,
+        baseVs.length / 2,
+        doorVs.length / 2
     ], gl.TRIANGLE_STRIP, program);
 };
 
@@ -108,7 +107,7 @@ function render(verts, cols, splits, mode, program) {
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     let offset = 0;
-    for(let i in splits) {
+    for (let i in splits) {
         gl.drawArrays(mode, offset, splits[i]);
         offset += splits[i];
     }

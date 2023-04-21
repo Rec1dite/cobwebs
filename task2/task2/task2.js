@@ -25,7 +25,7 @@ var bottom = -1.0;
 
 var modelViewMatrix, projectionMatrix;
 var modelViewMatrixLoc, projectionMatrixLoc;
-var eye;
+var camera;
 
 const at = vec3(0.0, 0.0, 0.0);
 const up = vec3(0.0, 1.0, 0.0);
@@ -179,10 +179,10 @@ window.onload = function init() {
 var render = function() {
         gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        eye = vec3(radius*Math.sin(phi), radius*Math.sin(theta),
+        camera = vec3(radius*Math.sin(phi), radius*Math.sin(theta),
              radius*Math.cos(phi));
 
-        modelViewMatrix = lookAt(eye, at , up);
+        modelViewMatrix = lookAt(camera, at , up);
         projectionMatrix = ortho(left, right, bottom, ytop, near, far);
 
         gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
