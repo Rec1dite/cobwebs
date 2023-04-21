@@ -36,7 +36,6 @@ const at = vec3(0.0, 0.0, 0.0);
 const up = vec3(0.0, 1.0, 0.0);
 
 var vertices = [
-    // Base
     vec4(-0.5, -0.5, 0.5, 1.0),    // 0b
     vec4(-0.5, 0.5, 0.5, 1.0),    // 1t
     vec4(0.5, 0.5, 0.5, 1.0),     // 2t
@@ -63,59 +62,29 @@ var vertices = [
 ];
 
 // Catppuccin color scheme
-var vertexColors = {
-    r: vec4(0.95, 0.55, 0.66, 1.0),
-    g: vec4(0.65, 0.89, 0.63, 1.0),
-    b: vec4(0.54, 0.71, 0.98, 1.0),
-
-    c: vec4(0.58, 0.89, 0.84, 1.0),
-    m: vec4(0.92, 0.63, 0.68, 1.0),
-    y: vec4(0.98, 0.7, 0.53, 1.0),
-
-    k: vec4(0.07, 0.07, 0.11, 1.0),
-    w: vec4(0.8, 0.84, 0.96, 1.0),
-
-    x: vec4(0.12, 0.12, 0.18, 1.0)
-};
+function colorSphere() {
+    colorCube();
+    // quad(1, 0, 3, 2)
+    // for(let i = 0; i < vertices.length; i++)
+    // {
+    //     verts.push(vertices[a]);
+    //     cols.push(vec4(1, 1, 1, 1));
+    //     norms.push(vec3(0, 0, 0));
+    // }
+    // numVertices = vertices.length*3;
+}
 
 function colorCube() {
     // Base
-    quad(1, 0, 3, 2, "g");
-    quad(2, 3, 7, 6, "y");   //Window wall 1
-    quad(3, 0, 4, 7, "m");  // Floor
-    quad(4, 5, 6, 7, "c");
-    quad(5, 4, 0, 1, "b");
-
-    // // Roof
-    tri(6, 8, 2, "r");
-    tri(6, 8, 5, "m");
-    tri(5, 8, 1, "r");
-    tri(2, 8, 1, "m");
+    quad(1, 0, 3, 2, vec4(1, 1, 1, 1));
+    quad(2, 3, 7, 6, vec4(1, 1, 1, 1));
+    quad(3, 0, 4, 7, vec4(1, 1, 1, 1));
+    quad(4, 5, 6, 7, vec4(1, 1, 1, 1));
+    quad(5, 4, 0, 1, vec4(1, 1, 1, 1));
 
     // Windows
-    quad(9, 10, 11, 12, "k");
-    quad(13, 14, 15, 16, "k");
-}
-
-function tri(a, b, c, col) {
-    var t1 = subtract(vertices[b], vertices[a]);
-    var t2 = subtract(vertices[c], vertices[b]);
-    var normal = cross(t1, t2);
-    var normal = vec3(normal);
-
-    verts.push(vertices[a]);
-    cols.push(vertexColors[col]);
-    norms.push(vertexColors[normal]);
-
-    verts.push(vertices[b]);
-    cols.push(vertexColors[col]);
-    norms.push(vertexColors[normal]);
-
-    verts.push(vertices[c]);
-    cols.push(vertexColors[col]);
-    norms.push(vertexColors[normal]);
-
-    numVertices += 3;
+    quad(9, 10, 11, 12, vec4(1, 1, 1, 1));
+    quad(13, 14, 15, 16, vec4(1, 1, 1, 1));
 }
 
 function quad(a, b, c, d, col) {
@@ -125,27 +94,27 @@ function quad(a, b, c, d, col) {
     var normal = vec3(normal);
 
     verts.push(vertices[a]);
-    cols.push(vertexColors[col]);
+    cols.push(col);
     norms.push(vertexColors[normal]);
 
     verts.push(vertices[b]);
-    cols.push(vertexColors[col]);
+    cols.push(col);
     norms.push(vertexColors[normal]);
 
     verts.push(vertices[c]);
-    cols.push(vertexColors[col]);
+    cols.push(col);
     norms.push(vertexColors[normal]);
 
     verts.push(vertices[a]);
-    cols.push(vertexColors[col]);
+    cols.push(col);
     norms.push(vertexColors[normal]);
 
     verts.push(vertices[c]);
-    cols.push(vertexColors[col]);
+    cols.push(col);
     norms.push(vertexColors[normal]);
 
     verts.push(vertices[d]);
-    cols.push(vertexColors[col]);
+    cols.push(col);
     norms.push(vertexColors[normal]);
     numVertices += 6;
 }
@@ -166,7 +135,7 @@ window.onload = function init() {
     gl.useProgram(program);
 
     //===== CREATE GEOMETRY ======//
-    colorCube();
+    colorSphere();
 
     //===== CREATE BUFFERS =====//
     // normals
@@ -208,7 +177,7 @@ window.onload = function init() {
     let rotP = document.getElementById("rotP");
 
     setInterval(() => {
-        const speed = 1;
+        const speed = 0.1;
         if (isRot) {
             if(rotX.checked) rX += speed;
             if(rotY.checked) rY += speed;

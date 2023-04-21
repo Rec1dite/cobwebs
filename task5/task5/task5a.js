@@ -35,119 +35,26 @@ var camera;
 const at = vec3(0.0, 0.0, 0.0);
 const up = vec3(0.0, 1.0, 0.0);
 
-var vertices = [
-    // Base
-    vec4(-0.5, -0.5, 0.5, 1.0),    // 0b
-    vec4(-0.5, 0.5, 0.5, 1.0),    // 1t
-    vec4(0.5, 0.5, 0.5, 1.0),     // 2t
-    vec4(0.5, -0.5, 0.5, 1.0),     // 3b
-    vec4(-0.5, -0.5, -0.5, 1.0),    // 4b
-    vec4(-0.5, 0.5, -0.5, 1.0),    // 5t
-    vec4(0.5, 0.5, -0.5, 1.0),     // 6t
-    vec4(0.5, -0.5, -0.5, 1.0),     // 7b
+let lat = 4;
+let lon = 6;
+let r = 1;
 
-    // Rooftop
-    vec4(0.0, 1.0, 0.0, 1.0),       // 8t
+function colorSphere() {
+    numVertices = 0;
+    let latR = Math.PI / lat;
+    let lonR = 2*Math.PI / lon;
 
-    // Window 1
-    vec4(0.501, 0.15, 0.15, 1.0),      // 9
-    vec4(0.501, -0.15, 0.15, 1.0),      // 10
-    vec4(0.501, -0.15, -0.15, 1.0),      // 11
-    vec4(0.501, 0.15, -0.15, 1.0),      // 12
+    for(let j = 0; j <= lon; j++) {
+        for(let i = 0; i <= lat; i++) {
+            let x = Math.sin(latR*i) * Math.cos(lonR*j) * r;
+            let y = Math.cos(latR*i) * Math.cos(lonR*j) * r;
+            let z = Math.sin(lonR*j) * r;
 
-    // Window 1
-    vec4(-0.501, 0.15, 0.15, 1.0),      // 13
-    vec4(-0.501, -0.15, 0.15, 1.0),      // 14
-    vec4(-0.501, -0.15, -0.15, 1.0),      // 15
-    vec4(-0.501, 0.15, -0.15, 1.0),      // 16
-];
-
-// Catppuccin color scheme
-var vertexColors = {
-    r: vec4(0.95, 0.55, 0.66, 1.0),
-    g: vec4(0.65, 0.89, 0.63, 1.0),
-    b: vec4(0.54, 0.71, 0.98, 1.0),
-
-    c: vec4(0.58, 0.89, 0.84, 1.0),
-    m: vec4(0.92, 0.63, 0.68, 1.0),
-    y: vec4(0.98, 0.7, 0.53, 1.0),
-
-    k: vec4(0.07, 0.07, 0.11, 1.0),
-    w: vec4(0.8, 0.84, 0.96, 1.0),
-
-    x: vec4(0.12, 0.12, 0.18, 1.0)
-};
-
-function colorCube() {
-    // Base
-    quad(1, 0, 3, 2, "g");
-    quad(2, 3, 7, 6, "y");   //Window wall 1
-    quad(3, 0, 4, 7, "m");  // Floor
-    quad(4, 5, 6, 7, "c");
-    quad(5, 4, 0, 1, "b");
-
-    // // Roof
-    tri(6, 8, 2, "r");
-    tri(6, 8, 5, "m");
-    tri(5, 8, 1, "r");
-    tri(2, 8, 1, "m");
-
-    // Windows
-    quad(9, 10, 11, 12, "k");
-    quad(13, 14, 15, 16, "k");
-}
-
-function tri(a, b, c, col) {
-    var t1 = subtract(vertices[b], vertices[a]);
-    var t2 = subtract(vertices[c], vertices[b]);
-    var normal = cross(t1, t2);
-    var normal = vec3(normal);
-
-    verts.push(vertices[a]);
-    cols.push(vertexColors[col]);
-    norms.push(vertexColors[normal]);
-
-    verts.push(vertices[b]);
-    cols.push(vertexColors[col]);
-    norms.push(vertexColors[normal]);
-
-    verts.push(vertices[c]);
-    cols.push(vertexColors[col]);
-    norms.push(vertexColors[normal]);
-
-    numVertices += 3;
-}
-
-function quad(a, b, c, d, col) {
-    var t1 = subtract(vertices[b], vertices[a]);
-    var t2 = subtract(vertices[c], vertices[b]);
-    var normal = cross(t1, t2);
-    var normal = vec3(normal);
-
-    verts.push(vertices[a]);
-    cols.push(vertexColors[col]);
-    norms.push(vertexColors[normal]);
-
-    verts.push(vertices[b]);
-    cols.push(vertexColors[col]);
-    norms.push(vertexColors[normal]);
-
-    verts.push(vertices[c]);
-    cols.push(vertexColors[col]);
-    norms.push(vertexColors[normal]);
-
-    verts.push(vertices[a]);
-    cols.push(vertexColors[col]);
-    norms.push(vertexColors[normal]);
-
-    verts.push(vertices[c]);
-    cols.push(vertexColors[col]);
-    norms.push(vertexColors[normal]);
-
-    verts.push(vertices[d]);
-    cols.push(vertexColors[col]);
-    norms.push(vertexColors[normal]);
-    numVertices += 6;
+            verts.push(vec4(x, y, z, 1));
+            cols.push(vec4(Math.random(), Math.random(), Math.random(), 1));
+            numVertices += 1;
+        }
+    }
 }
 
 window.onload = function init() {
@@ -166,7 +73,7 @@ window.onload = function init() {
     gl.useProgram(program);
 
     //===== CREATE GEOMETRY ======//
-    colorCube();
+    colorSphere();
 
     //===== CREATE BUFFERS =====//
     // normals
@@ -208,7 +115,7 @@ window.onload = function init() {
     let rotP = document.getElementById("rotP");
 
     setInterval(() => {
-        const speed = 1;
+        const speed = 0.1;
         if (isRot) {
             if(rotX.checked) rX += speed;
             if(rotY.checked) rY += speed;
@@ -242,7 +149,7 @@ var render = function () {
 
     // Possible options:
     // POINTS, LINES, LINE_STRIP, LINE_LOOP, TRIANGLES, TRIANGLE_STRIP, TRIANGLE_FAN
-    gl.drawArrays(gl.TRIANGLES, 0, numVertices);
+    gl.drawArrays(gl.LINE_STRIP, 0, numVertices);
 
     requestAnimFrame(render);
 }
