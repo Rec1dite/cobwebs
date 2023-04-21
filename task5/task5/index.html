@@ -37,16 +37,15 @@ void main()
 </script>
 
 <script id="fragment-shader" type="x-shader/x-fragment">
+    precision mediump float;
 
-precision mediump float;
+    varying vec4 fColor;
 
-varying vec4 fColor;
-
-void
-main()
-{
-    gl_FragColor = fColor;
-}
+    void
+    main()
+    {
+        gl_FragColor = fColor;
+    }
 </script>
 
 <script type="text/javascript" src="../Common/webgl-utils.js"></script>
@@ -59,13 +58,17 @@ main()
         Oops ... your browser doesn't support the HTML5 canvas element
     </canvas>
 
-    <br />
+    <br /><br />
     <button id="toggleRot">Toggle Rotation</button>
 
     <input type="radio" name="rot" id="rotX" value="x">x
     <input type="radio" name="rot" id="rotY" value="y" checked>y
     <input type="radio" name="rot" id="rotZ" value="z">z
     <input type="radio" name="rot" id="rotP" value="party">Party mode
+
+    <br /><br />
+    <button id="toggleRes">Toggle Low Res</button>
+    <input type="checkbox" id="wire">Wireframe
     <br />
 
 </body>

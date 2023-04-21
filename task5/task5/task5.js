@@ -4,6 +4,8 @@ var canvas;
 var gl;
 
 var numVertices = 0;
+var numVerticesHigh = 0;
+var numVerticesLow = 0;
 
 // The final lists that are sent to the gpu buffers
 var verts = [];
@@ -18,6 +20,8 @@ var phi = 1.0;
 var dr = 5.0 * Math.PI / 180.0;
 
 var isRot = true;
+var isLow = false;
+var isWire = false;
 
 var rX = 0.0;
 var rY = 0.0;
@@ -36,6 +40,8 @@ const at = vec3(0.0, 0.0, 0.0);
 const up = vec3(0.0, 1.0, 0.0);
 
 let lat = 80;
+let latLow = 0;
+let latHigh = 0;
 let lon = 120;
 let r = 1;
 
@@ -50,7 +56,11 @@ function calcXYZ(i, j) {
     return [x, y, z];
 }
 
-function colorSphere() {
+function colorSphere(la, lo) {
+    numVertices = 0;
+    lat = la;
+    lon = lo;
+
     drawCap(0, 1);
     for(let j = 1; j < lon/2-1; j++) {
         drawTriStrip(j);
@@ -72,7 +82,7 @@ function drawCap(j, jn) {
         [x, y, z] = calcXYZ(i, jn);
 
         verts.push(x, y, z, 1);
-        cols.push(c, c, c, 1);
+        cols.push(1, 0, 0, 1);
         norms.push(x, y, z);
     }
 }
@@ -115,7 +125,15 @@ window.onload = function init() {
     gl.useProgram(program);
 
     //===== CREATE GEOMETRY ======//
-    colorSphere();
+    //high
+    colorSphere(80, 120);
+    numVerticesHigh = numVertices;
+    latHigh = 80;
+
+    //low
+    colorSphere(8, 12);
+    numVerticesLow = numVertices;
+    latLow = 8;
 
     //===== CREATE BUFFERS =====//
     // normals
@@ -166,6 +184,22 @@ window.onload = function init() {
         }
     }, 0.1);
 
+    document.getElementById("toggleRes").onclick = () => {
+        if (isLow) {
+            isLow = false;
+            document.getElementById("toggleRes").innerHTML = "Toggle Low Res";
+        } else {
+            isLow = true;
+            document.getElementById("toggleRes").innerHTML = "Toggle High Res";
+        }
+    }
+
+    // TODO
+    let wire = document.getElementById("wire");
+    wire.onchange = () => {
+        isWire = wire.checked;
+    }
+
     render();
 }
 
@@ -192,10 +226,28 @@ var render = function () {
     // Possible options:
     // POINTS, LINES, LINE_STRIP, LINE_LOOP, TRIANGLES, TRIANGLE_STRIP, TRIANGLE_FAN
 
-    let numCap = 2*(lat+1);
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, numCap); //Cap
-    gl.drawArrays(gl.TRIANGLE_STRIP, numCap, numVertices); //Middle
-    gl.drawArrays(gl.TRIANGLE_FAN, numVertices+numCap, numCap); //Cap
+    let capDrawMode = isWire ? gl.LINE_STRIP : gl.TRIANGLE_FAN;
+    let midDrawMode = isWire ? gl.LINE_LOOP : gl.TRIANGLE_STRIP;
+
+    if (isLow) {
+        // High res vertices come at the beginning of the array,
+        // so we need to offset by that amount
+        let numCap = 2*(latLow+1);
+        let numCapHigh = 2*(latHigh+1);
+        let highOffset = 2*numCapHigh + numVerticesHigh;
+
+        gl.drawArrays(capDrawMode, highOffset, numCap); //Cap
+        gl.drawArrays(midDrawMode, highOffset + numCap, numVerticesLow); //Middle
+        gl.drawArrays(capDrawMode, highOffset + numVerticesLow+numCap, numCap); //Cap
+    }
+    else
+    {
+        let numCap = 2*(latHigh+1);
+        gl.drawArrays(capDrawMode, 0, numCap); //Cap
+        gl.drawArrays(midDrawMode, numCap, numVerticesHigh); //Middle
+        gl.drawArrays(capDrawMode, numVerticesHigh+numCap, numCap); //Cap
+    }
+
 
     // gl.drawArrays(gl.POINTS, 0, numVertices);
 
