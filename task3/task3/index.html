@@ -19,19 +19,14 @@ uniform mat4 projMatrix;
 void main() 
 {
     gl_PointSize = 10.0;
-    gl_Position = projMatrix * viewMatrix * vPosition;
-    fColor = vColor;
-
-    //====== SHADED CUBE ======//
-    vec3 pos = -(viewMatrix * vPosition).xyz;
-
-    // Light position
-    vec3 light = vec3(0.0, 1.0, 1.0);
-    vec3 L = normalize(light - pos);
 
     gl_Position = projMatrix * viewMatrix * transMatrix * vPosition;
-    float Kd = max(dot(L, vec3(0, 1, 0)), 0.2);
-    fColor = vColor * Kd;
+
+    vec4 l = vec4(1, 1, 0, 0);
+    float k = dot(transMatrix * vPosition, l);
+    k = max(min(pow(2.0, k) - 0.5, 1.0), 0.4);
+
+    fColor = vColor * k;
 } 
 </script>
 

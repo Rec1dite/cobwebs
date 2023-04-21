@@ -35,25 +35,64 @@ var camera;
 const at = vec3(0.0, 0.0, 0.0);
 const up = vec3(0.0, 1.0, 0.0);
 
-let lat = 4;
-let lon = 6;
+let lat = 80;
+let lon = 120;
 let r = 1;
 
-function colorSphere() {
-    numVertices = 0;
+// Calculates the <x, y, z> coords of a point on the sphere
+function calcXYZ(i, j) {
     let latR = Math.PI / lat;
     let lonR = 2*Math.PI / lon;
 
-    for(let j = 0; j <= lon; j++) {
-        for(let i = 0; i <= lat; i++) {
-            let x = Math.sin(latR*i) * Math.cos(lonR*j) * r;
-            let y = Math.cos(latR*i) * Math.cos(lonR*j) * r;
-            let z = Math.sin(lonR*j) * r;
+    let x = Math.sin(latR*i) * Math.cos(lonR*j-Math.PI/2) * r;
+    let y = Math.cos(latR*i) * Math.cos(lonR*j-Math.PI/2) * r;
+    let z = Math.sin(lonR*j-Math.PI/2) * r;
+    return [x, y, z];
+}
 
-            verts.push(vec4(x, y, z, 1));
-            cols.push(vec4(Math.random(), Math.random(), Math.random(), 1));
-            numVertices += 1;
-        }
+function colorSphere() {
+    drawCap(0, 1);
+    for(let j = 1; j < lon/2-1; j++) {
+        drawTriStrip(j);
+    }
+    drawCap(lon/2, lon/2-1);
+}
+
+// Constructs the caps at each end of the sphere
+function drawCap(j, jn) {
+    let c = 1;
+
+    // Add pivot point
+    let [x, y, z] = calcXYZ(0, j);
+    verts.push(x, y, z, 1);
+    cols.push(c, c, c, 1);
+
+    // Add orbitors
+    for(let i = 0; i <= lat*2; i++) {
+        [x, y, z] = calcXYZ(i, jn);
+
+        verts.push(x, y, z, 1);
+        cols.push(c, c, c, 1);
+    }
+}
+
+// Draws a single latitudinal ribbon in the middle of the sphere
+function drawTriStrip(j) {
+    for(let i = 0; i <= lat*2; i++) {
+        let [x1, y1, z1] = calcXYZ(i, j);
+        let [x2, y2, z2] = calcXYZ(i, (j+1)%lon);
+
+        let c = Math.abs(i/lat - 1);
+
+        // i, j+1
+        verts.push(x1, y1, z1, 1);
+        cols.push(c, c, c, 1);
+        numVertices += 1;
+
+        // i, 0
+        verts.push(x2, y2, z2, 1);
+        cols.push(c, c, c, 1);
+        numVertices += 1;
     }
 }
 
@@ -115,7 +154,7 @@ window.onload = function init() {
     let rotP = document.getElementById("rotP");
 
     setInterval(() => {
-        const speed = 0.1;
+        const speed = 0.4;
         if (isRot) {
             if(rotX.checked) rX += speed;
             if(rotY.checked) rY += speed;
@@ -149,7 +188,13 @@ var render = function () {
 
     // Possible options:
     // POINTS, LINES, LINE_STRIP, LINE_LOOP, TRIANGLES, TRIANGLE_STRIP, TRIANGLE_FAN
-    gl.drawArrays(gl.LINE_STRIP, 0, numVertices);
+
+    let numCap = 2*(lat+1);
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, numCap); //Cap
+    gl.drawArrays(gl.TRIANGLE_STRIP, numCap, numVertices); //Middle
+    gl.drawArrays(gl.TRIANGLE_FAN, numVertices+numCap, numCap); //Cap
+
+    // gl.drawArrays(gl.POINTS, 0, numVertices);
 
     requestAnimFrame(render);
 }

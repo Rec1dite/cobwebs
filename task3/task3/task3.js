@@ -55,11 +55,17 @@ var vertices = [
     vec4(0.501, -0.15, -0.15, 1.0),      // 11
     vec4(0.501, 0.15, -0.15, 1.0),      // 12
 
-    // Window 1
+    // Window 2
     vec4(-0.501, 0.15, 0.15, 1.0),      // 13
     vec4(-0.501, -0.15, 0.15, 1.0),      // 14
     vec4(-0.501, -0.15, -0.15, 1.0),      // 15
     vec4(-0.501, 0.15, -0.15, 1.0),      // 16
+
+    // Door
+    vec4( 0.15, 0.15,  -0.501,1.0),      // 17
+    vec4(-0.15, 0.15,  -0.501,1.0),      // 18
+    vec4(-0.15, -0.475, -0.501, 1.0),      // 19
+    vec4( 0.15, -0.475, -0.501, 1.0),      // 20
 ];
 
 // Catppuccin color scheme
@@ -86,34 +92,36 @@ function colorCube() {
     quad(4, 5, 6, 7, "c");
     quad(5, 4, 0, 1, "b");
 
-    // // Roof
+    // Roof
     tri(6, 8, 2, "r");
-    tri(6, 8, 5, "m");
-    tri(5, 8, 1, "r");
-    tri(2, 8, 1, "m");
+    tri(8, 6, 5, "r");
+    tri(1, 5, 8, "r");
+    tri(2, 1, 8, "r");
 
     // Windows
     quad(9, 10, 11, 12, "k");
     quad(13, 14, 15, 16, "k");
+
+    // Door
+    quad(17, 18, 19, 20, "k");
 }
 
 function tri(a, b, c, col) {
     var t1 = subtract(vertices[b], vertices[a]);
-    var t2 = subtract(vertices[c], vertices[b]);
+    var t2 = subtract(vertices[b], vertices[c]);
     var normal = cross(t1, t2);
-    var normal = vec3(normal);
 
     verts.push(vertices[a]);
     cols.push(vertexColors[col]);
-    norms.push(vertexColors[normal]);
+    norms.push(normal);
 
     verts.push(vertices[b]);
     cols.push(vertexColors[col]);
-    norms.push(vertexColors[normal]);
+    norms.push(normal);
 
     verts.push(vertices[c]);
     cols.push(vertexColors[col]);
-    norms.push(vertexColors[normal]);
+    norms.push(normal);
 
     numVertices += 3;
 }
@@ -122,31 +130,30 @@ function quad(a, b, c, d, col) {
     var t1 = subtract(vertices[b], vertices[a]);
     var t2 = subtract(vertices[c], vertices[b]);
     var normal = cross(t1, t2);
-    var normal = vec3(normal);
 
     verts.push(vertices[a]);
     cols.push(vertexColors[col]);
-    norms.push(vertexColors[normal]);
+    norms.push(normal); //TODO: Fix, input normal directly
 
     verts.push(vertices[b]);
     cols.push(vertexColors[col]);
-    norms.push(vertexColors[normal]);
+    norms.push(normal);
 
     verts.push(vertices[c]);
     cols.push(vertexColors[col]);
-    norms.push(vertexColors[normal]);
+    norms.push(normal);
 
     verts.push(vertices[a]);
     cols.push(vertexColors[col]);
-    norms.push(vertexColors[normal]);
+    norms.push(normal);
 
     verts.push(vertices[c]);
     cols.push(vertexColors[col]);
-    norms.push(vertexColors[normal]);
+    norms.push(normal);
 
     verts.push(vertices[d]);
     cols.push(vertexColors[col]);
-    norms.push(vertexColors[normal]);
+    norms.push(normal);
     numVertices += 6;
 }
 

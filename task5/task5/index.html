@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <meta http-equiv="refresh" content="1.5">
+    <!-- <meta http-equiv="refresh" content="3"> -->
 </head>
 
 <script id="vertex-shader" type="x-shader/x-vertex">
@@ -18,7 +18,7 @@ uniform mat4 projMatrix;
 
 void main() 
 {
-    gl_PointSize = 10.0;
+    gl_PointSize = 5.0;
     gl_Position = projMatrix * viewMatrix * vPosition;
     fColor = vColor;
 
