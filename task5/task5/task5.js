@@ -35,88 +35,68 @@ var camera;
 const at = vec3(0.0, 0.0, 0.0);
 const up = vec3(0.0, 1.0, 0.0);
 
-var vertices = [
-    vec4(-0.5, -0.5, 0.5, 1.0),    // 0b
-    vec4(-0.5, 0.5, 0.5, 1.0),    // 1t
-    vec4(0.5, 0.5, 0.5, 1.0),     // 2t
-    vec4(0.5, -0.5, 0.5, 1.0),     // 3b
-    vec4(-0.5, -0.5, -0.5, 1.0),    // 4b
-    vec4(-0.5, 0.5, -0.5, 1.0),    // 5t
-    vec4(0.5, 0.5, -0.5, 1.0),     // 6t
-    vec4(0.5, -0.5, -0.5, 1.0),     // 7b
+let lat = 80;
+let lon = 120;
+let r = 1;
 
-    // Rooftop
-    vec4(0.0, 1.0, 0.0, 1.0),       // 8t
+// Calculates the <x, y, z> coords of a point on the sphere
+function calcXYZ(i, j) {
+    let latR = Math.PI / lat;
+    let lonR = 2*Math.PI / lon;
 
-    // Window 1
-    vec4(0.501, 0.15, 0.15, 1.0),      // 9
-    vec4(0.501, -0.15, 0.15, 1.0),      // 10
-    vec4(0.501, -0.15, -0.15, 1.0),      // 11
-    vec4(0.501, 0.15, -0.15, 1.0),      // 12
+    let x = Math.sin(latR*i) * Math.cos(lonR*j-Math.PI/2) * r;
+    let y = Math.cos(latR*i) * Math.cos(lonR*j-Math.PI/2) * r;
+    let z = Math.sin(lonR*j-Math.PI/2) * r;
+    return [x, y, z];
+}
 
-    // Window 1
-    vec4(-0.501, 0.15, 0.15, 1.0),      // 13
-    vec4(-0.501, -0.15, 0.15, 1.0),      // 14
-    vec4(-0.501, -0.15, -0.15, 1.0),      // 15
-    vec4(-0.501, 0.15, -0.15, 1.0),      // 16
-];
-
-// Catppuccin color scheme
 function colorSphere() {
-    colorCube();
-    // quad(1, 0, 3, 2)
-    // for(let i = 0; i < vertices.length; i++)
-    // {
-    //     verts.push(vertices[a]);
-    //     cols.push(vec4(1, 1, 1, 1));
-    //     norms.push(vec3(0, 0, 0));
-    // }
-    // numVertices = vertices.length*3;
+    drawCap(0, 1);
+    for(let j = 1; j < lon/2-1; j++) {
+        drawTriStrip(j);
+    }
+    drawCap(lon/2, lon/2-1);
 }
 
-function colorCube() {
-    // Base
-    quad(1, 0, 3, 2, vec4(1, 1, 1, 1));
-    quad(2, 3, 7, 6, vec4(1, 1, 1, 1));
-    quad(3, 0, 4, 7, vec4(1, 1, 1, 1));
-    quad(4, 5, 6, 7, vec4(1, 1, 1, 1));
-    quad(5, 4, 0, 1, vec4(1, 1, 1, 1));
+// Constructs the caps at each end of the sphere
+function drawCap(j, jn) {
+    let c = 1;
 
-    // Windows
-    quad(9, 10, 11, 12, vec4(1, 1, 1, 1));
-    quad(13, 14, 15, 16, vec4(1, 1, 1, 1));
+    // Add pivot point
+    let [x, y, z] = calcXYZ(0, j);
+    verts.push(x, y, z, 1);
+    cols.push(c, c, c, 1);
+
+    // Add orbitors
+    for(let i = 0; i <= lat*2; i++) {
+        [x, y, z] = calcXYZ(i, jn);
+
+        verts.push(x, y, z, 1);
+        cols.push(c, c, c, 1);
+        norms.push(x, y, z);
+    }
 }
 
-function quad(a, b, c, d, col) {
-    var t1 = subtract(vertices[b], vertices[a]);
-    var t2 = subtract(vertices[c], vertices[b]);
-    var normal = cross(t1, t2);
-    var normal = vec3(normal);
+// Draws a single latitudinal ribbon in the middle of the sphere
+function drawTriStrip(j) {
+    for(let i = 0; i <= lat*2; i++) {
+        let [x1, y1, z1] = calcXYZ(i, j);
+        let [x2, y2, z2] = calcXYZ(i, (j+1)%lon);
 
-    verts.push(vertices[a]);
-    cols.push(col);
-    norms.push(vertexColors[normal]);
+        let c = Math.abs(i/lat - 1);
 
-    verts.push(vertices[b]);
-    cols.push(col);
-    norms.push(vertexColors[normal]);
+        // i, j+1
+        verts.push(x1, y1, z1, 1);
+        cols.push(c, c, c, 1);
+        norms.push(x1, y1, z1); // Norms == coords on sphere
+        numVertices += 1;
 
-    verts.push(vertices[c]);
-    cols.push(col);
-    norms.push(vertexColors[normal]);
-
-    verts.push(vertices[a]);
-    cols.push(col);
-    norms.push(vertexColors[normal]);
-
-    verts.push(vertices[c]);
-    cols.push(col);
-    norms.push(vertexColors[normal]);
-
-    verts.push(vertices[d]);
-    cols.push(col);
-    norms.push(vertexColors[normal]);
-    numVertices += 6;
+        // i, 0
+        verts.push(x2, y2, z2, 1);
+        cols.push(c, c, c, 1);
+        norms.push(x2, y2, z2);
+        numVertices += 1;
+    }
 }
 
 window.onload = function init() {
@@ -177,7 +157,7 @@ window.onload = function init() {
     let rotP = document.getElementById("rotP");
 
     setInterval(() => {
-        const speed = 0.1;
+        const speed = 0.4;
         if (isRot) {
             if(rotX.checked) rX += speed;
             if(rotY.checked) rY += speed;
@@ -211,7 +191,13 @@ var render = function () {
 
     // Possible options:
     // POINTS, LINES, LINE_STRIP, LINE_LOOP, TRIANGLES, TRIANGLE_STRIP, TRIANGLE_FAN
-    gl.drawArrays(gl.TRIANGLES, 0, numVertices);
+
+    let numCap = 2*(lat+1);
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, numCap); //Cap
+    gl.drawArrays(gl.TRIANGLE_STRIP, numCap, numVertices); //Middle
+    gl.drawArrays(gl.TRIANGLE_FAN, numVertices+numCap, numCap); //Cap
+
+    // gl.drawArrays(gl.POINTS, 0, numVertices);
 
     requestAnimFrame(render);
 }

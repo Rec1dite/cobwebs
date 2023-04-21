@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <!-- <meta http-equiv="refresh" content="3"> -->
+    <!-- <meta http-equiv="refresh" content="1.5"> -->
 </head>
 
 <script id="vertex-shader" type="x-shader/x-vertex">
@@ -18,21 +18,15 @@ uniform mat4 projMatrix;
 
 void main() 
 {
-    gl_PointSize = 5.0;
-    gl_Position = projMatrix * viewMatrix * vPosition;
-    fColor = vColor;
-
-    //====== SHADED CUBE ======//
-    vec3 pos = -(viewMatrix * vPosition).xyz;
-
-    // Light position
-    vec3 light = vec3(0.0, 1.0, 1.0);
-    vec3 L = normalize(light - pos);
+    gl_PointSize = 10.0;
 
     gl_Position = projMatrix * viewMatrix * transMatrix * vPosition;
-    float k = min(max(dot(L, vec3(0, 1, 0)), 0.2), 1.0);
+
+    vec4 l = vec4(1, 1, 0, 0);
+    float k = dot(transMatrix * vPosition, l);
+    k = max(min(pow(2.0, k) - 0.5, 1.0), 0.4);
+
     fColor = vColor * k;
-    // fColor = transMatrix * vec4(vNormal, 1.0);
 } 
 </script>
 
@@ -52,7 +46,7 @@ main()
 <script type="text/javascript" src="../Common/webgl-utils.js"></script>
 <script type="text/javascript" src="../Common/initShaders.js"></script>
 <script type="text/javascript" src="../Common/MV.js"></script>
-<script type="text/javascript" src="task5.js"></script>
+<script type="text/javascript" src="task4.js"></script>
 
 <body>
     <canvas id="gl-canvas" width="512" height="512">
@@ -66,6 +60,9 @@ main()
     <input type="radio" name="rot" id="rotY" value="y" checked>y
     <input type="radio" name="rot" id="rotZ" value="z">z
     <input type="radio" name="rot" id="rotP" value="party">Party mode
+
+    <input type="checkbox" id="wire">Wireframe
+
     <br />
 
 </body>

@@ -4,11 +4,13 @@ var canvas;
 var gl;
 
 var numVertices = 0;
+var numWireVerts = 0;
 
 // The final lists that are sent to the gpu buffers
 var verts = [];
 var cols = [];
 var norms = [];
+var wireParts = [];
 
 var near = -1;
 var far = 3;
@@ -18,6 +20,7 @@ var phi = 1.0;
 var dr = 5.0 * Math.PI / 180.0;
 
 var isRot = true;
+var isWire = false;
 
 var rX = 0.0;
 var rY = 0.0;
@@ -35,65 +38,130 @@ var camera;
 const at = vec3(0.0, 0.0, 0.0);
 const up = vec3(0.0, 1.0, 0.0);
 
-let lat = 80;
-let lon = 120;
-let r = 1;
+var vertices = [
+    // Base
+    vec4(-0.5, -0.5, 0.5, 1.0),    // 0b
+    vec4(-0.5, 0.5, 0.5, 1.0),    // 1t
+    vec4(0.5, 0.5, 0.5, 1.0),     // 2t
+    vec4(0.5, -0.5, 0.5, 1.0),     // 3b
+    vec4(-0.5, -0.5, -0.5, 1.0),    // 4b
+    vec4(-0.5, 0.5, -0.5, 1.0),    // 5t
+    vec4(0.5, 0.5, -0.5, 1.0),     // 6t
+    vec4(0.5, -0.5, -0.5, 1.0),     // 7b
 
-// Calculates the <x, y, z> coords of a point on the sphere
-function calcXYZ(i, j) {
-    let latR = Math.PI / lat;
-    let lonR = 2*Math.PI / lon;
+    // Rooftop
+    vec4(0.0, 1.0, 0.0, 1.0),       // 8t
 
-    let x = Math.sin(latR*i) * Math.cos(lonR*j-Math.PI/2) * r;
-    let y = Math.cos(latR*i) * Math.cos(lonR*j-Math.PI/2) * r;
-    let z = Math.sin(lonR*j-Math.PI/2) * r;
-    return [x, y, z];
+    // Window 1
+    vec4(0.501, 0.15, 0.15, 1.0),      // 9
+    vec4(0.501, -0.15, 0.15, 1.0),      // 10
+    vec4(0.501, -0.15, -0.15, 1.0),      // 11
+    vec4(0.501, 0.15, -0.15, 1.0),      // 12
+
+    // Window 2
+    vec4(-0.501, 0.15, 0.15, 1.0),      // 13
+    vec4(-0.501, -0.15, 0.15, 1.0),      // 14
+    vec4(-0.501, -0.15, -0.15, 1.0),      // 15
+    vec4(-0.501, 0.15, -0.15, 1.0),      // 16
+
+    // Door
+    vec4( 0.15, 0.15,  -0.501,1.0),      // 17
+    vec4(-0.15, 0.15,  -0.501,1.0),      // 18
+    vec4(-0.15, -0.475, -0.501, 1.0),      // 19
+    vec4( 0.15, -0.475, -0.501, 1.0),      // 20
+];
+
+// Catppuccin color scheme
+var vertexColors = {
+    r: vec4(0.95, 0.55, 0.66, 1.0),
+    g: vec4(0.65, 0.89, 0.63, 1.0),
+    b: vec4(0.54, 0.71, 0.98, 1.0),
+
+    c: vec4(0.58, 0.89, 0.84, 1.0),
+    m: vec4(0.92, 0.63, 0.68, 1.0),
+    y: vec4(0.98, 0.7, 0.53, 1.0),
+
+    k: vec4(0.07, 0.07, 0.11, 1.0),
+    w: vec4(0.8, 0.84, 0.96, 1.0),
+
+    x: vec4(0.12, 0.12, 0.18, 1.0)
+};
+
+
+function colorCube() {
+    // Base
+    quad(1, 0, 3, 2, "g");
+    quad(2, 3, 7, 6, "y");   //Window wall 1
+    quad(3, 0, 4, 7, "m");  // Floor
+    quad(4, 5, 6, 7, "c");
+    quad(5, 4, 0, 1, "b");
+
+    // Roof
+    tri(6, 8, 2, "r");
+    tri(8, 6, 5, "r");
+    tri(1, 5, 8, "r");
+    tri(2, 1, 8, "r");
+
+    // Windows
+    quad(9, 10, 11, 12, "w");
+    quad(13, 14, 15, 16, "w");
+
+    // Door
+    quad(17, 18, 19, 20, "w");
 }
 
-function colorSphere() {
-    drawCap(0, 1);
-    for(let j = 1; j < lon/2-1; j++) {
-        drawTriStrip(j);
-    }
-    drawCap(lon/2, lon/2-1);
+function tri(a, b, c, col) {
+    var t1 = subtract(vertices[b], vertices[a]);
+    var t2 = subtract(vertices[b], vertices[c]);
+    var normal = cross(t1, t2);
+
+    verts.push(vertices[a]);
+    cols.push(vertexColors[col]);
+    norms.push(normal);
+
+    verts.push(vertices[b]);
+    cols.push(vertexColors[col]);
+    norms.push(normal);
+
+    verts.push(vertices[c]);
+    cols.push(vertexColors[col]);
+    norms.push(normal);
+
+    numVertices += 3;
+    wireParts.push(3);
 }
 
-// Constructs the caps at each end of the sphere
-function drawCap(j, jn) {
-    let c = 1;
+function quad(a, b, c, d, col) {
+    var t1 = subtract(vertices[b], vertices[a]);
+    var t2 = subtract(vertices[c], vertices[b]);
+    var normal = cross(t1, t2);
 
-    // Add pivot point
-    let [x, y, z] = calcXYZ(0, j);
-    verts.push(x, y, z, 1);
-    cols.push(c, c, c, 1);
+    verts.push(vertices[a]);
+    cols.push(vertexColors[col]);
+    norms.push(normal); //TODO: Fix, input normal directly
 
-    // Add orbitors
-    for(let i = 0; i <= lat*2; i++) {
-        [x, y, z] = calcXYZ(i, jn);
+    verts.push(vertices[b]);
+    cols.push(vertexColors[col]);
+    norms.push(normal);
 
-        verts.push(x, y, z, 1);
-        cols.push(c, c, c, 1);
-    }
-}
+    verts.push(vertices[c]);
+    cols.push(vertexColors[col]);
+    norms.push(normal);
 
-// Draws a single latitudinal ribbon in the middle of the sphere
-function drawTriStrip(j) {
-    for(let i = 0; i <= lat*2; i++) {
-        let [x1, y1, z1] = calcXYZ(i, j);
-        let [x2, y2, z2] = calcXYZ(i, (j+1)%lon);
+    verts.push(vertices[a]);
+    cols.push(vertexColors[col]);
+    norms.push(normal);
 
-        let c = Math.abs(i/lat - 1);
+    verts.push(vertices[c]);
+    cols.push(vertexColors[col]);
+    norms.push(normal);
 
-        // i, j+1
-        verts.push(x1, y1, z1, 1);
-        cols.push(c, c, c, 1);
-        numVertices += 1;
+    verts.push(vertices[d]);
+    cols.push(vertexColors[col]);
+    norms.push(normal);
 
-        // i, 0
-        verts.push(x2, y2, z2, 1);
-        cols.push(c, c, c, 1);
-        numVertices += 1;
-    }
+    numVertices += 6;
+    wireParts.push(6);
 }
 
 window.onload = function init() {
@@ -112,7 +180,7 @@ window.onload = function init() {
     gl.useProgram(program);
 
     //===== CREATE GEOMETRY ======//
-    colorSphere();
+    colorCube();
 
     //===== CREATE BUFFERS =====//
     // normals
@@ -154,7 +222,7 @@ window.onload = function init() {
     let rotP = document.getElementById("rotP");
 
     setInterval(() => {
-        const speed = 0.4;
+        const speed = 1;
         if (isRot) {
             if(rotX.checked) rX += speed;
             if(rotY.checked) rY += speed;
@@ -162,6 +230,12 @@ window.onload = function init() {
             if(rotP.checked) { rX += speed; rY += speed; rZ += speed; }
         }
     }, 0.1);
+
+    let wire = document.getElementById("wire");
+
+    wire.onchange = () => {
+        isWire = wire.checked;
+    }
 
     render();
 }
@@ -189,12 +263,17 @@ var render = function () {
     // Possible options:
     // POINTS, LINES, LINE_STRIP, LINE_LOOP, TRIANGLES, TRIANGLE_STRIP, TRIANGLE_FAN
 
-    let numCap = 2*(lat+1);
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, numCap); //Cap
-    gl.drawArrays(gl.TRIANGLE_STRIP, numCap, numVertices); //Middle
-    gl.drawArrays(gl.TRIANGLE_FAN, numVertices+numCap, numCap); //Cap
-
-    // gl.drawArrays(gl.POINTS, 0, numVertices);
+    if(isWire) {
+        let offset = 0;
+        for(let i = 0; i < wireParts.length; i++) {
+            gl.drawArrays(gl.LINE_LOOP, offset, wireParts[i]);
+            offset += wireParts[i];
+        }
+    }
+    else
+    {
+        gl.drawArrays(gl.TRIANGLES, 0, numVertices);
+    }
 
     requestAnimFrame(render);
 }
