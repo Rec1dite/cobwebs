@@ -1,42 +1,37 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-    <!-- <meta http-equiv="refresh" content="3"> -->
-</head>
+    <script id="vertex-shader" type="x-shader/x-vertex">
+    attribute  vec3 vNormal;
+    attribute  vec4 vPosition;
+    attribute  vec4 vColor;
+    varying vec4 fColor;
 
-<script id="vertex-shader" type="x-shader/x-vertex">
+    uniform mat4 transMatrix;
+    uniform mat4 viewMatrix;
+    uniform mat4 projMatrix;
 
-attribute  vec3 vNormal;
-attribute  vec4 vPosition;
-attribute  vec4 vColor;
-varying vec4 fColor;
+    void main() 
+    {
+        gl_PointSize = 5.0;
+        gl_Position = projMatrix * viewMatrix * vPosition;
+        fColor = vColor;
 
-uniform mat4 transMatrix;
-uniform mat4 viewMatrix;
-uniform mat4 projMatrix;
+        //====== SHADED CUBE ======//
+        vec3 pos = -(viewMatrix * vPosition).xyz;
 
-void main() 
-{
-    gl_PointSize = 5.0;
-    gl_Position = projMatrix * viewMatrix * vPosition;
-    fColor = vColor;
+        // Light position
+        vec3 light = vec3(0.0, 1.0, 1.0);
+        vec3 L = normalize(light - pos);
 
-    //====== SHADED CUBE ======//
-    vec3 pos = -(viewMatrix * vPosition).xyz;
-
-    // Light position
-    vec3 light = vec3(0.0, 1.0, 1.0);
-    vec3 L = normalize(light - pos);
-
-    gl_Position = projMatrix * viewMatrix * transMatrix * vPosition;
-    float k = min(max(dot(L, vec3(0, 1, 0)), 0.2), 1.0);
-    fColor = vColor * k;
-    // fColor = transMatrix * vec4(vNormal, 1.0);
-} 
+        gl_Position = projMatrix * viewMatrix * transMatrix * vPosition;
+        float k = min(max(dot(L, vec3(0, 1, 0)), 0.2), 1.0);
+        fColor = vColor * k;
+        // fColor = transMatrix * vec4(vNormal, 1.0);
+    } 
 </script>
 
-<script id="fragment-shader" type="x-shader/x-fragment">
+    <script id="fragment-shader" type="x-shader/x-fragment">
     precision mediump float;
 
     varying vec4 fColor;
@@ -48,10 +43,12 @@ void main()
     }
 </script>
 
-<script type="text/javascript" src="../common/webgl-utils.js"></script>
-<script type="text/javascript" src="../common/initShaders.js"></script>
-<script type="text/javascript" src="../common/MV.js"></script>
-<script type="text/javascript" src="task5.js"></script>
+    <script type="text/javascript" src="../common/webgl-utils.js"></script>
+    <script type="text/javascript" src="../common/initShaders.js"></script>
+    <script type="text/javascript" src="../common/MV.js"></script>
+    <script type="text/javascript" src="task5.js"></script>
+
+</head>
 
 <body>
     <canvas id="gl-canvas" width="512" height="512">

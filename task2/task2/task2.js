@@ -12,9 +12,9 @@ var colors = [];
 var near = -1;
 var far = 3;
 var radius = 1.0;
-var theta  = 0.0;
-var phi    = 1.0;
-var dr = 5.0 * Math.PI/180.0;
+var theta = 0.0;
+var phi = 1.0;
+var dr = 5.0 * Math.PI / 180.0;
 
 var isIso = false;
 
@@ -31,56 +31,55 @@ const at = vec3(0.0, 0.0, 0.0);
 const up = vec3(0.0, 1.0, 0.0);
 
 var vertices = [
-        // Base
-        vec4(-0.5, -0.5,  0.5, 1.0),    // 0b
-        vec4(-0.5,  0.5,  0.5, 1.0),    // 1t
-        vec4(0.5,  0.5,  0.5, 1.0),     // 2t
-        vec4(0.5, -0.5,  0.5, 1.0),     // 3b
-        vec4(-0.5, -0.5, -0.5, 1.0),    // 4b
-        vec4(-0.5,  0.5, -0.5, 1.0),    // 5t
-        vec4(0.5,  0.5, -0.5, 1.0),     // 6t
-        vec4(0.5, -0.5, -0.5, 1.0),     // 7b
+    // Base
+    vec4(-0.5, -0.5, 0.5, 1.0),    // 0b
+    vec4(-0.5, 0.5, 0.5, 1.0),    // 1t
+    vec4(0.5, 0.5, 0.5, 1.0),     // 2t
+    vec4(0.5, -0.5, 0.5, 1.0),     // 3b
+    vec4(-0.5, -0.5, -0.5, 1.0),    // 4b
+    vec4(-0.5, 0.5, -0.5, 1.0),    // 5t
+    vec4(0.5, 0.5, -0.5, 1.0),     // 6t
+    vec4(0.5, -0.5, -0.5, 1.0),     // 7b
 
-        // Rooftop
-        vec4(0.0, 1.0, 0.0, 1.0),       // 8t
+    // Rooftop
+    vec4(0.0, 1.0, 0.0, 1.0),       // 8t
 
-        // Window 1
-        vec4(0.501, 0.15, 0.15, 1.0),      // 9
-        vec4(0.501, -0.15, 0.15, 1.0),      // 10
-        vec4(0.501, -0.15, -0.15, 1.0),      // 11
-        vec4(0.501, 0.15, -0.15, 1.0),      // 12
+    // Window 1
+    vec4(0.501, 0.15, 0.15, 1.0),      // 9
+    vec4(0.501, -0.15, 0.15, 1.0),      // 10
+    vec4(0.501, -0.15, -0.15, 1.0),      // 11
+    vec4(0.501, 0.15, -0.15, 1.0),      // 12
 
-        // Window 2
-        vec4(-0.501, 0.15, 0.15, 1.0),      // 13
-        vec4(-0.501, -0.15, 0.15, 1.0),      // 14
-        vec4(-0.501, -0.15, -0.15, 1.0),      // 15
-        vec4(-0.501, 0.15, -0.15, 1.0),      // 16
+    // Window 2
+    vec4(-0.501, 0.15, 0.15, 1.0),      // 13
+    vec4(-0.501, -0.15, 0.15, 1.0),      // 14
+    vec4(-0.501, -0.15, -0.15, 1.0),      // 15
+    vec4(-0.501, 0.15, -0.15, 1.0),      // 16
 
-        // Door
-        vec4( 0.15, 0.15,  -0.501,1.0),      // 17
-        vec4(-0.15, 0.15,  -0.501,1.0),      // 18
-        vec4(-0.15, -0.475, -0.501, 1.0),      // 19
-        vec4( 0.15, -0.475, -0.501, 1.0),      // 20
-    ];
+    // Door
+    vec4(0.15, 0.15, -0.501, 1.0),      // 17
+    vec4(-0.15, 0.15, -0.501, 1.0),      // 18
+    vec4(-0.15, -0.475, -0.501, 1.0),      // 19
+    vec4(0.15, -0.475, -0.501, 1.0),      // 20
+];
 
 // Catppuccin color scheme
-var vertexColors = { 
-        r: vec4(0.95, 0.55, 0.66, 1.0),
-        g: vec4(0.65, 0.89, 0.63, 1.0),
-        b: vec4(0.54, 0.71, 0.98, 1.0),
+var vertexColors = {
+    r: vec4(0.95, 0.55, 0.66, 1.0),
+    g: vec4(0.65, 0.89, 0.63, 1.0),
+    b: vec4(0.54, 0.71, 0.98, 1.0),
 
-        c: vec4(0.58, 0.89, 0.84, 1.0),
-        m: vec4(0.92, 0.63, 0.68, 1.0),
-        y: vec4(0.98, 0.7, 0.53, 1.0),
+    c: vec4(0.58, 0.89, 0.84, 1.0),
+    m: vec4(0.92, 0.63, 0.68, 1.0),
+    y: vec4(0.98, 0.7, 0.53, 1.0),
 
-        k: vec4(0.07, 0.07, 0.11, 1.0),
-        w: vec4(0.8, 0.84, 0.96, 1.0),
+    k: vec4(0.07, 0.07, 0.11, 1.0),
+    w: vec4(0.8, 0.84, 0.96, 1.0),
 
-        x: vec4(0.12, 0.12, 0.18, 1.0)
-    };
+    x: vec4(0.12, 0.12, 0.18, 1.0)
+};
 
-function colorCube()
-{
+function colorCube() {
     // Base
     quad(1, 0, 3, 2, "g");
     quad(2, 3, 7, 6, "y");   //Window wall 1
@@ -170,11 +169,11 @@ window.onload = function init() {
     document.getElementById("toggleIso").onclick = () => {
         if (isIso) {
             isIso = false;
-            theta  = 0.0;
+            theta = 0.0;
             document.getElementById("toggleIso").innerHTML = "Toggle Isometric";
         } else {
             isIso = true;
-            theta  = 0.5;
+            theta = 0.5;
             document.getElementById("toggleIso").innerHTML = "Toggle Flat";
         }
     }
@@ -185,18 +184,18 @@ window.onload = function init() {
 }
 
 
-var render = function() {
-        gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+var render = function () {
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        camera = vec3(radius*Math.sin(phi), radius*Math.sin(theta),
-             radius*Math.cos(phi));
+    camera = vec3(radius * Math.sin(phi), radius * Math.sin(theta),
+        radius * Math.cos(phi));
 
-        modelViewMatrix = lookAt(camera, at , up);
-        projectionMatrix = ortho(left, right, bottom, ytop, near, far);
+    modelViewMatrix = lookAt(camera, at, up);
+    projectionMatrix = ortho(left, right, bottom, ytop, near, far);
 
-        gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
-        gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix));
+    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
+    gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix));
 
-        gl.drawArrays(gl.TRIANGLES, 0, numVertices);
-        requestAnimFrame(render);
-    }
+    gl.drawArrays(gl.TRIANGLES, 0, numVertices);
+    requestAnimFrame(render);
+}

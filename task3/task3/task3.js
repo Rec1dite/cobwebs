@@ -62,10 +62,10 @@ var vertices = [
     vec4(-0.501, 0.15, -0.15, 1.0),      // 16
 
     // Door
-    vec4( 0.15, 0.15,  -0.501,1.0),      // 17
-    vec4(-0.15, 0.15,  -0.501,1.0),      // 18
+    vec4(0.15, 0.15, -0.501, 1.0),      // 17
+    vec4(-0.15, 0.15, -0.501, 1.0),      // 18
     vec4(-0.15, -0.475, -0.501, 1.0),      // 19
-    vec4( 0.15, -0.475, -0.501, 1.0),      // 20
+    vec4(0.15, -0.475, -0.501, 1.0),      // 20
 ];
 
 // Catppuccin color scheme
@@ -178,12 +178,12 @@ window.onload = function init() {
     //===== CREATE BUFFERS =====//
     // normals
     var nBuffer = gl.createBuffer();
-    gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer );
-    gl.bufferData( gl.ARRAY_BUFFER, flatten(norms), gl.STATIC_DRAW );
+    gl.bindBuffer(gl.ARRAY_BUFFER, nBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(norms), gl.STATIC_DRAW);
 
-    var vNormal = gl.getAttribLocation( program, "vNormal" );
-    gl.vertexAttribPointer( vNormal, 3, gl.FLOAT, false, 0, 0 );
-    gl.enableVertexAttribArray( vNormal );
+    var vNormal = gl.getAttribLocation(program, "vNormal");
+    gl.vertexAttribPointer(vNormal, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vNormal);
 
     // colors
     var cBuffer = gl.createBuffer();
@@ -217,10 +217,10 @@ window.onload = function init() {
     setInterval(() => {
         const speed = 1;
         if (isRot) {
-            if(rotX.checked) rX += speed;
-            if(rotY.checked) rY += speed;
-            if(rotZ.checked) rZ += speed;
-            if(rotP.checked) { rX += speed; rY += speed; rZ += speed; }
+            if (rotX.checked) rX += speed;
+            if (rotY.checked) rY += speed;
+            if (rotZ.checked) rZ += speed;
+            if (rotP.checked) { rX += speed; rY += speed; rZ += speed; }
         }
     }, 0.1);
 
@@ -236,9 +236,9 @@ var render = function () {
 
     let transMat = mat4();
     // transMat = mult(transMat, scale([1, 1, 1, 1], [1, 1, 1, 1]));
-    transMat = mult(transMat, rotate(rX, [1, 0, 0] ));
-    transMat = mult(transMat, rotate(rY, [0, 1, 0] ));
-    transMat = mult(transMat, rotate(rZ, [0, 0, 1] ));
+    transMat = mult(transMat, rotate(rX, [1, 0, 0]));
+    transMat = mult(transMat, rotate(rY, [0, 1, 0]));
+    transMat = mult(transMat, rotate(rZ, [0, 0, 1]));
 
     viewMat = lookAt(camera, at, up);
     projMat = ortho(left, right, bottom, ytop, near, far);
