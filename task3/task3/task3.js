@@ -94,9 +94,9 @@ function colorCube() {
 
     // Roof
     tri(6, 8, 2, "r");
-    tri(8, 6, 5, "r");
+    tri(8, 6, 5, "m");
     tri(1, 5, 8, "r");
-    tri(2, 1, 8, "r");
+    tri(2, 1, 8, "m");
 
     // Windows
     quad(9, 10, 11, 12, "k");
@@ -133,7 +133,7 @@ function quad(a, b, c, d, col) {
 
     verts.push(vertices[a]);
     cols.push(vertexColors[col]);
-    norms.push(normal); //TODO: Fix, input normal directly
+    norms.push(normal);
 
     verts.push(vertices[b]);
     cols.push(vertexColors[col]);

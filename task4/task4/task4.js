@@ -138,7 +138,7 @@ function quad(a, b, c, d, col) {
 
     verts.push(vertices[a]);
     cols.push(vertexColors[col]);
-    norms.push(normal); //TODO: Fix, input normal directly
+    norms.push(normal);
 
     verts.push(vertices[b]);
     cols.push(vertexColors[col]);

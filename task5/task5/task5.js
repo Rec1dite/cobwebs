@@ -194,8 +194,8 @@ window.onload = function init() {
         }
     }
 
-    // TODO
     let wire = document.getElementById("wire");
+    isWire = wire.checked;
     wire.onchange = () => {
         isWire = wire.checked;
     }
