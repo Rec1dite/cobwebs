@@ -5,10 +5,23 @@ var gl;
 
 var numVertices = 36;
 
+var currT = "tra";
+
+var steps = {
+    tra: 0.1,
+    rot: 0.1,
+    sca: 0.1
+}
+
 var transform = {
-    t: { x: 0, y: 0, z: 0 },
-    r: { x: 0, y: 0, z: 0 },
-    s: { x: 1, y: 1, z: 1 }
+    tra: { x: 0, y: 0, z: 0 },
+    rot: { x: 0, y: 0, z: 0 },
+    sca: { x: 1, y: 1, z: 1 }
+}
+
+// Apply a transformation step to a property along an axis
+function applyMove(axis, mult) {
+    transform[currT][axis] += steps[currT] * mult;
 }
 
 var vertices = [
@@ -98,16 +111,32 @@ window.onload = function init() {
 
     let thetaLoc = gl.getUniformLocation(program, "theta");
 
+    let rads = {};
+    for (let x of ["tra", "rot", "sca"]) {
+        rads[x] = document.getElementById(x);
+    }
+
+    let updateTransform = () => {
+        currT = rads["tra"].checked ? "tra" : 
+                        rads["rot"].checked ? "rot" :
+                        rads["sca"].checked ? "sca" :
+                        null;
+    }
+
+    for (let x of ["tra", "rot", "sca"]) {
+        document.getElementById(x).addEventListener("change", updateTransform);
+    }
+
     document.addEventListener("keypress", e => {
         switch(e.key) {
-            case "a": break;
-            case "d": break;
+            case "a": applyMove("x", -1.0); break;
+            case "d": applyMove("x", 1.0);  break;
 
-            case "w": break;
-            case "s": break;
+            case "w": applyMove("y", -1.0); break;
+            case "s": applyMove("y", 1.0);  break;
 
-            case "q": break;
-            case "e": break;
+            case "q": applyMove("z", -1.0); break;
+            case "e": applyMove("z", 1.0);  break;
         }
         updateDebug();
     });
@@ -119,6 +148,16 @@ function render() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     // gl.uniform3fv(thetaLoc, theta);
+    let transMat = mat4();
+    // transMat = mult(transMat, scale([1, 1, 1, 1], [1, 1, 1, 1]));
+    transMat = mult(transMat, rotate(rX, [1, 0, 0]));
+    transMat = mult(transMat, rotate(rY, [0, 1, 0]));
+    transMat = mult(transMat, rotate(rZ, [0, 0, 1]));
+
+    viewMat = lookAt(camera, at, up);
+    projMat = ortho(left, right, bottom, ytop, near, far);
+
+    gl.uniformMatrix4fv(transMatLoc, false, flatten(transMat));
 
     gl.drawElements(gl.TRIANGLES, numVertices, gl.UNSIGNED_BYTE, 0);
 
