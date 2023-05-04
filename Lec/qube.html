@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="refresh" content="5">
+    <script id="vertex-shader" type="x-shader/x-vertex">
+
+    attribute  vec4 vPosition;
+    attribute  vec4 vColor;
+    varying vec4 fColor;
+
+    uniform vec3 theta;
+
+    void main()
+    {
+        // Compute the sines and cosines of theta for each of
+        //   the three axes in one computation.
+        vec3 angles = radians( theta );
+        vec3 c = cos( angles );
+        vec3 s = sin( angles );
+
+        // Remeber: thse matrices are column-major
+        mat4 rx = mat4( 1.0,  0.0,  0.0, 0.0,
+                0.0,  c.x,  s.x, 0.0,
+                0.0, -s.x,  c.x, 0.0,
+                0.0,  0.0,  0.0, 1.0 );
+
+        mat4 ry = mat4( c.y, 0.0, -s.y, 0.0,
+                0.0, 1.0,  0.0, 0.0,
+                s.y, 0.0,  c.y, 0.0,
+                0.0, 0.0,  0.0, 1.0 );
+
+
+        mat4 rz = mat4( c.z, s.z, 0.0, 0.0,
+                -s.z,  c.z, 0.0, 0.0,
+                0.0,  0.0, 1.0, 0.0,
+                0.0,  0.0, 0.0, 1.0 );
+
+        fColor = vColor;
+        gl_Position = rz * ry * rx * vPosition;
+        gl_Position.z = -gl_Position.z;
+    }
+    </script>
+
+    <script id="fragment-shader" type="x-shader/x-fragment">
+
+    precision mediump float;
+
+    varying vec4 fColor;
+
+    void
+    main()
+    {
+        gl_FragColor = fColor;
+    }
+    </script>
+
+    <script type="text/javascript" src="../Common/webgl-utils.js"></script>
+    <script type="text/javascript" src="../Common/initShaders.js"></script>
+    <script type="text/javascript" src="../Common/MV.js"></script>
+    <script type="text/javascript" src="qube.js"></script>
+    <style>
+        body {
+            font-family: monospace;
+        }
+        table {
+            display: inline-block;
+            border: 1px solid black;
+            margin: 0px;
+        }
+        .full {
+            width: 512px;
+        }
+        .controls td {
+            border: 1px solid black;
+            width: 6em;
+        }
+        ul {
+            padding: 0px;
+            list-style: none;
+        }
+        b {
+            color: #07075d;
+        }
+        td {
+            width: 50%;
+        }
+        .debug {
+            border: 1px solid green;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="gl-canvas" width="512" height=" 512">
+        Failed to obtain WebGL canvas
+    </canvas>
+
+    <br /><br />
+
+    <table class="full">
+        <tr>
+            <td>
+                <table class="controls">
+                    <tr>
+                        <td colspan="3">
+                            Controls
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><b>Axis</b></td>
+                        <td><b>Inc +</b></td>
+                        <td><b>Dec -</b></td>
+                    </tr>
+                    <tr>
+                        <td><b>x</b></td>
+                        <td>A</td>
+                        <td>D</td>
+                    </tr>
+                    <tr>
+                        <td><b>y</b></td>
+                        <td>W</td>
+                        <td>S</td>
+                    </tr>
+                    <tr>
+                        <td><b>z</b></td>
+                        <td>Q</td>
+                        <td>R</td>
+                    </tr>
+                </table>
+            </td>
+            <td>
+                <ul>
+                    <li><input type="radio" name="op" id="tra" checked>Translate</input></li>
+                    <li><input type="radio" name="op" id="rot">Rotate</input></li>
+                    <li><input type="radio" name="op" id="sca">Scale</input></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <div class="debug">
+                    DEBUG INFO
+                </div>
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>
