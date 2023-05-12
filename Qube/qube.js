@@ -1,3 +1,6 @@
+// Dino Gironi
+// (u21630276)
+
 "use strict";
 
 var canvas;
