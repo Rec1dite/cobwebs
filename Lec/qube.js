@@ -7,16 +7,32 @@ var numVertices = 36;
 
 var currT = "tra";
 
+var stepMult = 1.0;
 var steps = {
     tra: 0.1,
-    rot: 0.1,
+    rot: 1.0,
     sca: 0.1
 }
+
 
 var transform = {
     tra: { x: 0, y: 0, z: 0 },
     rot: { x: 0, y: 0, z: 0 },
     sca: { x: 1, y: 1, z: 1 }
+}
+
+var thetaLoc;
+var transLoc;
+var scaleLoc;
+
+function resetTransform() {
+    transform = {
+        tra: { x: 0, y: 0, z: 0 },
+        rot: { x: 0, y: 0, z: 0 },
+        sca: { x: 1, y: 1, z: 1 }
+    };
+
+    stepMult = 1.0;
 }
 
 // Apply a transformation step to a property along an axis
@@ -62,12 +78,17 @@ var indices = [
 ];
 
 function updateDebug() {
-    const debug = document.getElementById("debug");
-    debug.innerText = `
-    DEBUG INFO
-    {transform["t"]}
-    {transform["r"]}
-    {transform["s"]}
+const debug = document.getElementById("debug");
+
+    debug.innerHTML = `
+    <b>DEBUG INFO</b><br />
+    POSITION ${transform["tra"].x.toFixed(1)}, ${transform["tra"].y.toFixed(1)}, ${transform["tra"].z.toFixed(1)}
+    <br />
+    ROTATION ${transform["rot"].x.toFixed(1)}, ${transform["rot"].y.toFixed(1)}, ${transform["rot"].z.toFixed(1)}
+    <br />
+    SCALE    ${transform["sca"].x.toFixed(1)}, ${transform["sca"].y.toFixed(1)}, ${transform["sca"].z.toFixed(1)}
+    <br /><br />
+    STEP MULTIPLIER ${stepMult.toFixed(1)}
     `;
 }
 
@@ -109,7 +130,9 @@ window.onload = function init() {
     gl.vertexAttribPointer(vPosition, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPosition);
 
-    let thetaLoc = gl.getUniformLocation(program, "theta");
+    thetaLoc = gl.getUniformLocation(program, "theta");
+    transLoc = gl.getUniformLocation(program, "trans");
+    scaleLoc = gl.getUniformLocation(program, "scale");
 
     let rads = {};
     for (let x of ["tra", "rot", "sca"]) {
@@ -123,41 +146,50 @@ window.onload = function init() {
                         null;
     }
 
+    updateTransform();
+
     for (let x of ["tra", "rot", "sca"]) {
         document.getElementById(x).addEventListener("change", updateTransform);
     }
 
     document.addEventListener("keypress", e => {
         switch(e.key) {
-            case "a": applyMove("x", -1.0); break;
-            case "d": applyMove("x", 1.0);  break;
+            // Apply transformation
+            case "a": applyMove("x", -stepMult); break;
+            case "d": applyMove("x", stepMult);  break;
 
-            case "w": applyMove("y", -1.0); break;
-            case "s": applyMove("y", 1.0);  break;
+            case "w": applyMove("y", stepMult);  break;
+            case "s": applyMove("y", -stepMult); break;
 
-            case "q": applyMove("z", -1.0); break;
-            case "e": applyMove("z", 1.0);  break;
+            case "q": applyMove("z", -stepMult); break;
+            case "e": applyMove("z", stepMult);  break;
+
+            // Change step multiplier
+            case "+": stepMult = Math.max(0, Math.min(10, stepMult+0.1)); break;
+            case "-": stepMult = Math.max(0, Math.min(10, stepMult-0.1)); break;
+
+            // Reset
+            case " ": resetTransform(); break;
         }
+        e.preventDefault();
+        e.stopPropagation();
         updateDebug();
     });
 
     render();
 }
 
+function unpackTransform(trans) {
+    let {x, y, z} = transform[trans];
+    return [x, y, z];
+}
+
 function render() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    // gl.uniform3fv(thetaLoc, theta);
-    let transMat = mat4();
-    // transMat = mult(transMat, scale([1, 1, 1, 1], [1, 1, 1, 1]));
-    transMat = mult(transMat, rotate(rX, [1, 0, 0]));
-    transMat = mult(transMat, rotate(rY, [0, 1, 0]));
-    transMat = mult(transMat, rotate(rZ, [0, 0, 1]));
-
-    viewMat = lookAt(camera, at, up);
-    projMat = ortho(left, right, bottom, ytop, near, far);
-
-    gl.uniformMatrix4fv(transMatLoc, false, flatten(transMat));
+    gl.uniform3fv(thetaLoc, unpackTransform("rot"));
+    gl.uniform3fv(transLoc, unpackTransform("tra"));
+    gl.uniform3fv(scaleLoc, unpackTransform("sca"));
 
     gl.drawElements(gl.TRIANGLES, numVertices, gl.UNSIGNED_BYTE, 0);
 

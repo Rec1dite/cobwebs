@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta http-equiv="refresh" content="5">
+    <!-- <meta http-equiv="refresh" content="5"> -->
     <script id="vertex-shader" type="x-shader/x-vertex">
 
     attribute  vec4 vPosition;
@@ -9,34 +9,50 @@
     varying vec4 fColor;
 
     uniform vec3 theta;
+    uniform vec3 trans;
+    uniform vec3 scale;
 
     void main()
     {
-        // Compute the sines and cosines of theta for each of
-        //   the three axes in one computation.
-        vec3 angles = radians( theta );
-        vec3 c = cos( angles );
-        vec3 s = sin( angles );
+        vec3 angles = radians(theta);
+        vec3 c = cos(angles);
+        vec3 s = sin(angles);
 
-        // Remeber: thse matrices are column-major
-        mat4 rx = mat4( 1.0,  0.0,  0.0, 0.0,
-                0.0,  c.x,  s.x, 0.0,
-                0.0, -s.x,  c.x, 0.0,
-                0.0,  0.0,  0.0, 1.0 );
+        //========== ROTATION ============//
+        mat4 rx = mat4( 1.0,    0.0,    0.0,    0.0,
+                        0.0,    c.x,    s.x,    0.0,
+                        0.0,    -s.x,   c.x,    0.0,
+                        0.0,    0.0,    0.0,    1.0
+        );
 
-        mat4 ry = mat4( c.y, 0.0, -s.y, 0.0,
-                0.0, 1.0,  0.0, 0.0,
-                s.y, 0.0,  c.y, 0.0,
-                0.0, 0.0,  0.0, 1.0 );
+        mat4 ry = mat4( c.y,    0.0,    -s.y,   0.0,
+                        0.0,    1.0,    0.0,    0.0,
+                        s.y,    0.0,    c.y,    0.0,
+                        0.0,    0.0,    0.0,    1.0
+        );
 
+        mat4 rz = mat4( c.z,    s.z,    0.0,    0.0,
+                        -s.z,   c.z,    0.0,    0.0,
+                        0.0,    0.0,    1.0,    0.0,
+                        0.0,    0.0,    0.0,    1.0
+        );
 
-        mat4 rz = mat4( c.z, s.z, 0.0, 0.0,
-                -s.z,  c.z, 0.0, 0.0,
-                0.0,  0.0, 1.0, 0.0,
-                0.0,  0.0, 0.0, 1.0 );
+        //========== TRANSLATION ============//
+        mat4 tl = mat4( 1.0,    0.0,    0.0,    0.0,
+                        0.0,    1.0,    0.0,    0.0,
+                        0.0,    0.0,    1.0,    0.0,
+                        trans.x,trans.y,trans.z,1.0
+        );
+
+        //========== SCALING ============//
+        mat4 sc = mat4( scale.x,0.0,    0.0,    0.0,
+                        0.0,    scale.y,0.0,    0.0,
+                        0.0,    0.0,    scale.z,0.0,
+                        0.0,    0.0,    0.0,    1.0
+        );
 
         fColor = vColor;
-        gl_Position = rz * ry * rx * vPosition;
+        gl_Position = sc * rz * ry * rx * tl * vPosition;
         gl_Position.z = -gl_Position.z;
     }
     </script>
@@ -83,10 +99,24 @@
         }
         td {
             width: 50%;
+            padding: 0.5em;
+            padding-bottom: 0.8em;
         }
         .debug {
             border: 1px solid green;
             width: 100%;
+        }
+        i {
+            background: #d2d2d2;
+            padding: 0.1em 0.5em;
+            border: 2px solid #a0a0a0;
+            border-radius: 4px;
+            box-shadow: 0px 3px 0px #a0a0a0;
+            margin: 0.2em;
+        }
+        .spacer {
+            opacity: 0;
+            padding: 5px;
         }
     </style>
 </head>
@@ -107,6 +137,7 @@
                             Controls
                         </td>
                     </tr>
+                    <tr><td colspan="3" class="spacer"></td></tr>
                     <tr>
                         <td><b>Axis</b></td>
                         <td><b>Inc +</b></td>
@@ -114,18 +145,24 @@
                     </tr>
                     <tr>
                         <td><b>x</b></td>
-                        <td>A</td>
-                        <td>D</td>
+                        <td><i>A</i></td>
+                        <td><i>D</i></td>
                     </tr>
                     <tr>
                         <td><b>y</b></td>
-                        <td>W</td>
-                        <td>S</td>
+                        <td><i>S</i></td>
+                        <td><i>W</i></td>
                     </tr>
+                    <tr><td colspan="3" class="spacer"></td></tr>
                     <tr>
-                        <td><b>z</b></td>
-                        <td>Q</td>
-                        <td>R</td>
+                        <td><b>Step</b></td>
+                        <td><i>+</i></td>
+                        <td><i>-</i></td>
+                    </tr>
+                    <tr><td colspan="3" class="spacer"></td></tr>
+                    <tr>
+                        <td><b>Reset</b></td>
+                        <td colspan="2"><i>Space</i></td>
                     </tr>
                 </table>
             </td>
@@ -139,7 +176,7 @@
         </tr>
         <tr>
             <td colspan="2">
-                <div class="debug">
+                <div class="debug" id="debug">
                     DEBUG INFO
                 </div>
             </td>
