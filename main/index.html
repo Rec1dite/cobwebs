@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- <meta http-equiv="refresh" content="1"> -->
+    <script id="vertex-shader" type="x-shader/x-vertex">
+    attribute vec3 vNormal;
+    attribute vec4 vPosition;
+    attribute vec4 vColor;
+    varying vec4 fColor;
+
+    uniform mat4 transMatrix;
+    uniform mat4 viewMatrix;
+    uniform mat4 projMatrix;
+
+    void main()
+    {
+        gl_PointSize = 5.0;
+        gl_Position = projMatrix * viewMatrix * vPosition;
+        fColor = vColor;
+
+        //====== SHADED CUBE ======//
+        vec3 pos = -(viewMatrix * vPosition).xyz;
+
+        // Light position
+        vec3 light = vec3(0.0, 1.0, 1.0);
+        vec3 L = normalize(light - pos);
+
+        gl_Position = projMatrix * viewMatrix * transMatrix * vPosition;
+        float k = min(max(dot(L, vec3(0, 1, 0)), 0.2), 1.0);
+        fColor = vColor * k;
+        // fColor = transMatrix * vec4(vNormal, 1.0);
+    } 
+</script>
+
+    <script id="fragment-shader" type="x-shader/x-fragment">
+    precision mediump float;
+
+    varying vec4 fColor;
+
+    void
+    main()
+    {
+        gl_FragColor = fColor;
+    }
+</script>
+
+    <script type="text/javascript" src="../common/webgl-utils.js"></script>
+    <script type="text/javascript" src="../common/initShaders.js"></script>
+    <script type="text/javascript" src="../common/MV.js"></script>
+    <script type="text/javascript" src="main.js"></script>
+
+</head>
+
+<body>
+    <canvas id="gl-canvas" width="512" height="512">
+        Oops ... your browser doesn't support the HTML5 canvas element
+    </canvas>
+
+    <br /><br />
+    <button id="toggleRot">Toggle Rotation</button>
+
+    <br /><br />
+    <button id="toggleRes">Toggle Low Res</button>
+    <input type="checkbox" id="wire">Wireframe
+
+    <br /><br />
+
+    <input type="file" accept="image/*" id="fileInput">
+    <br />
+    <canvas id="previewCanvas" width="0" height="0">
+        Oops ... your browser doesn't support the HTML5 canvas element
+    </canvas>
+
+</body>
+
+</html>
