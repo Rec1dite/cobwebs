@@ -37,46 +37,112 @@ var camera;
 const at = vec3(0.0, 0.0, 0.0);
 const up = vec3(0.0, 1.0, 0.0);
 
+function getPixIndex(x, z, sampleStep, width) {
+    return 4 * (x * sampleStep + z * sampleStep * width);
+}
+
 function constructPlane() {
+    const sampleStep = 1.0;
     if (imgData == null) { return; }
-    // let w = imgData.width;
-    // let h = imgData.height;
-    let w = 20;
-    let h = 20;
+
+    // Reset lists
+    verts = [];
+    cols = [];
+    norms = [];
+
+    let w = imgData.width / sampleStep;
+    let h = imgData.height / sampleStep;
+    // let w = 20;
+    // let h = 20;
 
     let scale = 2.0 / w;
     for (let x = 0; x < w; x++) {
 
-        // Draw strip
-        for (let z = 0; z < h; z++) { 
+        // Draw forward strip
+        for (let z = 0; z < h; z++) {
 
             // Get pixel color
-            let pixIndex = 4*(x + z*w);
+            let pixIndex = getPixIndex(x, z, sampleStep, imgData.width);
             let r = imgData.data[pixIndex] / 255.0;
             let g = imgData.data[pixIndex+1] / 255.0;
             let b = imgData.data[pixIndex+2] / 255.0;
-            r = g = b = 1;
 
-            addSquare(scale*(x-w/2), 0, scale*(z-h/2), scale, r, g, b);
+            let xp = (x+1) % w;
+            let zp = (z+1) % h;
+            let y1 = r;
+            let y2 = imgData.data[getPixIndex(x, zp, sampleStep, imgData.width)] / 255.0;
+            let y3 = imgData.data[getPixIndex(xp, zp, sampleStep, imgData.width)] / 255.0;
+            let y4 = imgData.data[getPixIndex(xp, z, sampleStep, imgData.width)] / 255.0;
+            // let r, g, b;
+            // r = g = b = x / w;
+
+            addSquare((x-w/2), (z-h/2), y1, y2, y3, y4, 50*scale, scale, r, g, b);
         }
     }
 }
 
-function addSquare(x, y, z, scale, r, g, b) {
-    verts.push(x, y, z, 1);
+function addSquare(x, z, y1, y2, y3, y4, yscale, scale, r, g, b) {
+    const sx = scale*x;
+    const sz = scale*z;
 
+    verts.push(sx, yscale*y1, sz, 1);
     cols.push(r, g, b, 1);
-    norms.push(x, y, z);
+    norms.push(0, 1, 0);
     numVertices += 1;
 
-    verts.push(x+scale, y, z, 1);
-
+    verts.push(sx, yscale*y2, sz+scale, 1);
     cols.push(r, g, b, 1);
-    norms.push(x, y, z);
+    norms.push(0, 1, 0);
+    numVertices += 1;
+
+    verts.push(sx+scale, yscale*y3, sz+scale, 1);
+    cols.push(r, g, b, 1);
+    norms.push(0, 1, 0);
+    numVertices += 1;
+
+    verts.push(sx, yscale*y1, sz, 1);
+    cols.push(r, g, b, 1);
+    norms.push(0, 1, 0);
+    numVertices += 1;
+
+    verts.push(sx+scale, yscale*y3, sz+scale, 1);
+    cols.push(r, g, b, 1);
+    norms.push(0, 1, 0);
+    numVertices += 1;
+
+    verts.push(sx+scale, yscale*y4, sz, 1);
+    cols.push(r, g, b, 1);
+    norms.push(0, 1, 0);
     numVertices += 1;
 }
 
+var nBuffer;
+var vBuffer;
+var cBuffer;
+var gl;
+var program;
+
+
 window.onload = function init() {
+    //===== SETUP =====//
+    canvas = document.getElementById("gl-canvas");
+    gl = WebGLUtils.setupWebGL(canvas);
+    if (!gl) { alert("WebGL isn't available"); }
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.depthRange(0.8, 1.0);
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.PRIMITIVE_RESTART_FIXED_INDEX)
+
+    gl.clearColor(0.12, 0.12, 0.18, 1.0);
+
+    theta = 10;
+
+    //===== LOAD SHADERS =====//
+    //  Load shaders and initialize attribute buffers
+    program = initShaders(gl, "vertex-shader", "fragment-shader");
+    gl.useProgram(program);
+
+    // reloadCanvas();
 
     //===== HANDLE FILE UPLOAD =====//
     document.getElementById('fileInput').addEventListener('change', function(e) {
@@ -101,26 +167,17 @@ window.onload = function init() {
 }
 
 function reloadCanvas() {
-    //===== SETUP =====//
-    canvas = document.getElementById("gl-canvas");
-    gl = WebGLUtils.setupWebGL(canvas);
-    if (!gl) { alert("WebGL isn't available"); }
-
-    gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.clearColor(0.12, 0.12, 0.18, 1.0);
-    gl.enable(gl.DEPTH_TEST);
-
-    //===== LOAD SHADERS =====//
-    //  Load shaders and initialize attribute buffers
-    var program = initShaders(gl, "vertex-shader", "fragment-shader");
-    gl.useProgram(program);
+    //===== DELETE PREVIOUS BUFFERS =====//
+    gl.deleteBuffer(nBuffer);
+    gl.deleteBuffer(cBuffer);
+    gl.deleteBuffer(vBuffer);
 
     //===== CREATE GEOMETRY ======//
     constructPlane();
 
     //===== CREATE BUFFERS =====//
     // normals
-    var nBuffer = gl.createBuffer();
+    nBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, nBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(norms), gl.STATIC_DRAW);
 
@@ -129,7 +186,7 @@ function reloadCanvas() {
     gl.enableVertexAttribArray(vNormal);
 
     // colors
-    var cBuffer = gl.createBuffer();
+    cBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(cols), gl.STATIC_DRAW);
 
@@ -138,7 +195,7 @@ function reloadCanvas() {
     gl.enableVertexAttribArray(vColor);
 
     // vertices
-    var vBuffer = gl.createBuffer();
+    vBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(verts), gl.STATIC_DRAW);
 
@@ -156,17 +213,16 @@ function reloadCanvas() {
     wire.onchange = () => {
         isWire = wire.checked;
     }
-
-    theta = 10;
     render();
+
 }
 
-
-var render = function () {
+// See [https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Animating_objects_with_WebGL]
+var render = () => {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    phi += 0.001;
-    theta += 0.001;
+    phi += 0.01;
+    theta += 0.01;
 
     camera = vec3(radius * Math.sin(phi), radius * Math.sin(theta),
         radius * Math.cos(phi));
@@ -187,8 +243,12 @@ var render = function () {
     // Possible options:
     // POINTS, LINES, LINE_STRIP, LINE_LOOP, TRIANGLES, TRIANGLE_STRIP, TRIANGLE_FAN
 
-    let drawMode = gl.LINE_STRIP;
-    gl.drawArrays(drawMode, 0, numVertices)
+    let drawMode = gl.TRIANGLES;
+
+    for (let i = 0; i < numVertices; i += 6) {
+        gl.drawArrays(drawMode, i, 6);
+    }
+    // gl.drawArrays(drawMode, 0, numVertices)
 
     requestAnimFrame(render);
 }
