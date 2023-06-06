@@ -51,13 +51,21 @@
 
     <style>
         .loader {
+            position: fixed;
+            top: 0px;
+            left: 0px;
             margin-top: 0.4em;
-            width: 100%;
+            width: 0px;
             height: 1em;
             background: linear-gradient(#f43e5c 0%, #bc2740 100%);
             border-radius: 0.5em;
             box-shadow: 0 0.1em 0.3em rgba(0, 0, 0, 0.3);
-            display: none;
+            transition: all 0s;
+        }
+
+        .loader.show {
+            width: 100%;
+            transition: all 0.2s ease-in;
         }
     </style>
 

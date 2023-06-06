@@ -57,7 +57,7 @@ function constructPlane() {
     // let h = 20;
 
     let scale = 2.0 / w;
-    for (let x = 0; x < w; x++) {
+    for (let x = 0; x < w-1; x++) {
 
         // Draw forward strip
         for (let z = 0; z < h-1; z++) {
@@ -119,29 +119,6 @@ var gl;
 var program;
 
 var loader;
-var start;
-var showLoader = false;
-function runLoader(timestamp) {
-    if (start == undefined) {
-        start = timestamp;
-        loader.style.display = "block";
-    }
-    const elapsed = timestamp - start;
-
-    const progress = Math.log(elapsed / 1000 + 1);
-
-    loader.style.width = `${progress * 100}%`;
-
-    // Stop condition
-    if (progress >= 10) {
-        showLoader = false;
-        start = undefined;
-    }
-
-    if (showLoader) {
-        window.requestAnimationFrame(runLoader);
-    }
-}
 
 window.onload = function init() {
     //===== SETUP =====//
@@ -172,8 +149,7 @@ window.onload = function init() {
         img.src = URL.createObjectURL(e.target.files[0]);
 
         // Start loader animation
-        showLoader = true;
-        runLoader();
+        loader.classList.add("show");
 
         img.onload = function() {
             previewCanvas.width = img.width;
@@ -242,8 +218,9 @@ function reloadCanvas() {
     projMatLoc = gl.getUniformLocation(program, "projMatrix");
 
     render(++renderId);
-    showLoader = false;
-    loader.style.display = "none";
+    setTimeout(() => {
+        loader.classList.remove("show");
+    }, 200);
 }
 
 // See [https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Animating_objects_with_WebGL]
