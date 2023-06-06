@@ -4,11 +4,15 @@ var canvas;
 var gl;
 
 var numVertices = 0;
+var numArrows = 0;
 
 // The final lists that are sent to the gpu buffers
 var verts = [];
 var cols = [];
 var norms = [];
+var arrows = [];
+var arrowCols = [];
+
 var imgData = null;
 
 var near = -1;
@@ -43,13 +47,15 @@ function getPixIndex(x, z, sampleStep, width) {
 }
 
 function constructPlane() {
-    numVertices = 0;
     if (imgData == null) { return; }
 
     // Reset lists
     verts = [];
+    arrows = [];
     cols = [];
     norms = [];
+    numVertices = 0;
+    numArrows = 0;
 
     let w = imgData.width / sampleStep;
     let h = imgData.height / sampleStep;
@@ -82,31 +88,53 @@ function constructPlane() {
     }
 }
 
-function addSquare(x, z, y1, y2, y3, y4, yscale, scale) {
-    const sx = scale*x;
-    const sz = scale*z;
+function addSquare(x, z, y1, y2, y3, y4, yscale, xzScale) {
+    const sx = xzScale*x;
+    const sz = xzScale*z;
 
-    let col1 = [1, 0, 0];
-    let col2 = [0, 0, 1];
+    const col1 = [1, 0, 0];
+    const col2 = [0, 0, 1];
+    const arrowCol = [1, 1, 0];
+
+    // Calculate normal
+    let v1 = vec3(sx, yscale*y1, sz);
+    let v2 = vec3(sx, yscale*y2, sz+xzScale);
+    let v3 = vec3(sx+xzScale, yscale*y3, sz+xzScale);
+    let v4 = vec3(sx+xzScale, yscale*y4, sz);
+
+    let normal1 = scale(0.05, normalize(cross(subtract(v2, v1), subtract(v3, v1))));
+    let normal2 = scale(0.05, normalize(cross(subtract(v3, v1), subtract(v4, v1))));
+
+    // Calculate center of first triangle
+    let center1 = scale(0.33, add(add(v1, v2), v3));
+    let center2 = scale(0.33, add(add(v1, v3), v4));
+
+    arrows.push(...center1, 1);
+    arrows.push(...add(center1, normal1), 1);
+    arrows.push(...center2, 1);
+    arrows.push(...add(center2, normal2), 1);
+    arrowCols.push(...arrowCol, 1);
+    arrowCols.push(...arrowCol, 1);
+    arrowCols.push(...arrowCol, 1);
+    arrowCols.push(...arrowCol, 1);
+    numArrows += 4;
 
     // Triangle 1
-    verts.push(sx, yscale*y1, sz, 1);
-    verts.push(sx, yscale*y2, sz+scale, 1);
-    verts.push(sx+scale, yscale*y3, sz+scale, 1);
+    verts.push(...v1, 1);
+    verts.push(...v2, 1);
+    verts.push(...v3, 1);
 
     for (let i = 0; i < 3; i++) {
-        cols.push(col1[0], col1[1], col1[2], 1);
-        norms.push(0, 1, 0);
+        cols.push(...col1, 1);
     }
 
     // Triangle 2
-    verts.push(sx, yscale*y1, sz, 1);
-    verts.push(sx+scale, yscale*y3, sz+scale, 1);
-    verts.push(sx+scale, yscale*y4, sz, 1);
+    verts.push(...v1, 1);
+    verts.push(...v3, 1);
+    verts.push(...v4, 1);
 
     for (let i = 0; i < 3; i++) {
-        cols.push(col2[0], col2[1], col2[2], 1);
-        norms.push(0, 1, 0);
+        cols.push(...col2, 1);
     }
 
     numVertices += 6;
@@ -158,8 +186,6 @@ window.onload = function init() {
             imgData = context.getImageData(0, 0, previewCanvas.width, previewCanvas.height);
 
             reloadCanvas();
-
-            console.log(imgData);
         };
 
     }, false);
@@ -210,8 +236,10 @@ function reloadCanvas() {
     // normals
 
     // setupGLAttrib(nBuffer, norms, "vNormal", 3);
-    setupGLAttrib(cBuffer, cols, "vColor", 4);
-    setupGLAttrib(vBuffer, verts, "vPosition", 4);
+    setupGLAttrib(cBuffer, cols.concat(arrowCols), "vColor", 4);
+    setupGLAttrib(vBuffer, verts.concat(arrows), "vPosition", 4);
+    // setupGLAttrib(cBuffer, arrowCols, "vColor", 4);
+    // setupGLAttrib(vBuffer, arrows, "vPosition", 4);
 
     transMatLoc = gl.getUniformLocation(program, "transMatrix");
     viewMatLoc = gl.getUniformLocation(program, "viewMatrix");
@@ -231,7 +259,6 @@ var render = (id) => {
     let now = Date.now();
     if (isRot) {
         phi += (now - lastRender) * 0.001;
-        // theta += 0.01;
     }
     lastRender = now;
 
@@ -254,15 +281,17 @@ var render = (id) => {
     // Possible options:
     // POINTS, LINES, LINE_STRIP, LINE_LOOP, TRIANGLES, TRIANGLE_STRIP, TRIANGLE_FAN
 
-    let drawMode = isWire ? gl.LINE_LOOP : gl.TRIANGLES;
-
     if (isWire) {
         for (let i = 0; i < numVertices; i += 6) {
-            gl.drawArrays(drawMode, i, 6);
+            gl.drawArrays(gl.LINE_LOOP, i, 6);
+        }
+        for (let i = numVertices; i < numVertices+numArrows; i += 2) {
+            gl.drawArrays(gl.LINES, i, 2);
         }
     }
     else {
-        gl.drawArrays(drawMode, 0, numVertices)
+        gl.drawArrays(gl.TRIANGLES, 0, numVertices);
+        gl.drawArrays(gl.LINES, numVertices, numArrows);
     }
 
     // Stop condition

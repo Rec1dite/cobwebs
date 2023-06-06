@@ -86,8 +86,8 @@ function addSquare(x, z, y1, y2, y3, y4, yscale, scale) {
     const sx = scale*x;
     const sz = scale*z;
 
-    let col1 = [1, 0, 0];
-    let col2 = [0, 0, 1];
+    const col1 = [1, 0, 0];
+    const col2 = [0, 0, 1];
 
     // Triangle 1
     verts.push(sx, yscale*y1, sz, 1);
@@ -158,8 +158,6 @@ window.onload = function init() {
             imgData = context.getImageData(0, 0, previewCanvas.width, previewCanvas.height);
 
             reloadCanvas();
-
-            console.log(imgData);
         };
 
     }, false);
