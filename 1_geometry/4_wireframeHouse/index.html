@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<script id="vertex-shader" type="x-shader/x-vertex">
+    <script id="vertex-shader" type="x-shader/x-vertex">
     attribute  vec3 vNormal;
     attribute  vec4 vPosition;
     attribute  vec4 vColor;
@@ -23,8 +24,10 @@
 
         fColor = vColor * k;
     } 
-</script>
-<script id="fragment-shader" type="x-shader/x-fragment">
+    </script>
+
+    <script id="fragment-shader" type="x-shader/x-fragment">
+
     precision mediump float;
 
     varying vec4 fColor;
@@ -39,7 +42,8 @@
     <script type="text/javascript" src="../common/initShaders.js"></script>
     <script type="text/javascript" src="../common/MV.js"></script>
     <script type="text/javascript" src="../common/webgl-utils.js"></script>
-    <script type="text/javascript" src="task3.js"></script>
+    <script type="text/javascript" src="main.js"></script>
+
 </head>
 
 <body>
@@ -53,6 +57,7 @@
     <input type="radio" name="rot" id="rotY" value="y" checked>y
     <input type="radio" name="rot" id="rotZ" value="z">z
     <input type="radio" name="rot" id="rotP" value="party">Party mode
+    <input type="checkbox" id="wire">Wireframe
     <br />
 
 </body>
