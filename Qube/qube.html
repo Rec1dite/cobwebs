@@ -1,0 +1,205 @@
+<!-- Dino Gironi -->
+<!-- (u21630276) -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- <meta http-equiv="refresh" content="5"> -->
+    <script id="vertex-shader" type="x-shader/x-vertex">
+
+    attribute  vec4 vPosition;
+    attribute  vec4 vColor;
+    varying vec4 fColor;
+
+    uniform vec3 theta;
+    uniform vec3 trans;
+    uniform vec3 scale;
+
+    void main()
+    {
+        vec3 angles = radians(theta);
+        vec3 c = cos(angles);
+        vec3 s = sin(angles);
+
+        //========== ROTATION ============//
+        mat4 rx = mat4( 1.0,    0.0,    0.0,    0.0,
+                        0.0,    c.x,    s.x,    0.0,
+                        0.0,    -s.x,   c.x,    0.0,
+                        0.0,    0.0,    0.0,    1.0
+        );
+
+        mat4 ry = mat4( c.y,    0.0,    -s.y,   0.0,
+                        0.0,    1.0,    0.0,    0.0,
+                        s.y,    0.0,    c.y,    0.0,
+                        0.0,    0.0,    0.0,    1.0
+        );
+
+        mat4 rz = mat4( c.z,    s.z,    0.0,    0.0,
+                        -s.z,   c.z,    0.0,    0.0,
+                        0.0,    0.0,    1.0,    0.0,
+                        0.0,    0.0,    0.0,    1.0
+        );
+
+        //========== TRANSLATION ============//
+        mat4 tl = mat4( 1.0,    0.0,    0.0,    0.0,
+                        0.0,    1.0,    0.0,    0.0,
+                        0.0,    0.0,    1.0,    0.0,
+                        trans.x,trans.y,trans.z,1.0
+        );
+
+        //========== SCALING ============//
+        mat4 sc = mat4( scale.x,0.0,    0.0,    0.0,
+                        0.0,    scale.y,0.0,    0.0,
+                        0.0,    0.0,    scale.z,0.0,
+                        0.0,    0.0,    0.0,    1.0
+        );
+
+        fColor = vColor;
+        gl_Position = sc * rz * ry * rx * tl * vPosition;
+        gl_Position.z = -gl_Position.z;
+    }
+    </script>
+
+    <script id="fragment-shader" type="x-shader/x-fragment">
+
+    precision mediump float;
+
+    varying vec4 fColor;
+
+    void
+    main()
+    {
+        gl_FragColor = fColor;
+    }
+    </script>
+
+    <script type="text/javascript" src="../Common/webgl-utils.js"></script>
+    <script type="text/javascript" src="../Common/initShaders.js"></script>
+    <script type="text/javascript" src="../Common/MV.js"></script>
+    <script type="text/javascript" src="qube.js"></script>
+    <style>
+        body {
+            font-family: monospace;
+        }
+        table {
+            display: inline-block;
+            border: 1px solid black;
+            margin: 0px;
+        }
+        .full {
+            width: 512px;
+        }
+        .controls td {
+            border: 1px solid black;
+            width: 6em;
+        }
+        ul {
+            padding: 0px;
+            list-style: none;
+        }
+        b {
+            color: #07075d;
+        }
+        td {
+            width: 50%;
+            padding: 0.5em;
+            padding-bottom: 0.8em;
+        }
+        .debug {
+            border: 1px solid green;
+            width: 100%;
+        }
+        i {
+            display: inline-block;
+            background: #d2d2d2;
+            padding: 0.1em 0.5em;
+            border: 2px solid #a0a0a0;
+            border-radius: 4px;
+            box-shadow: 0px 3px 0px #a0a0a0;
+            margin: 0.2em;
+
+            cursor: default;
+            transition: 0.1s ease-in-out all;
+        }
+        i:hover {
+            background: #b7b7b7;
+            box-shadow: 0px 0px 0px #a0a0a0;
+            margin-top: calc(0.2em + 3px);
+            margin-bottom: calc(0.2em - 3px);
+        }
+        .spacer {
+            opacity: 0;
+            padding: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="gl-canvas" width="512" height=" 512">
+        Failed to obtain WebGL canvas
+    </canvas>
+
+    <br /><br />
+
+    <table class="full">
+        <tr>
+            <td>
+                <table class="controls">
+                    <tr>
+                        <td colspan="3" style="text-align: center">
+                            <u>Controls</u>
+                        </td>
+                    </tr>
+                    <tr><td colspan="3" class="spacer"></td></tr>
+                    <tr>
+                        <td><b>Axis</b></td>
+                        <td><b>Inc +</b></td>
+                        <td><b>Dec -</b></td>
+                    </tr>
+                    <tr>
+                        <td><b>x</b></td>
+                        <td><i>D</i></td>
+                        <td><i>A</i></td>
+                    </tr>
+                    <tr>
+                        <td><b>y</b></td>
+                        <td><i>W</i></td>
+                        <td><i>S</i></td>
+                    </tr>
+                    <tr>
+                        <td><b>z</b></td>
+                        <td><i>E</i></td>
+                        <td><i>Q</i></td>
+                    </tr>
+                    <tr><td colspan="3" class="spacer"></td></tr>
+                    <tr>
+                        <td><b>Step</b></td>
+                        <td><i>+</i></td>
+                        <td><i>-</i></td>
+                    </tr>
+                    <tr><td colspan="3" class="spacer"></td></tr>
+                    <tr>
+                        <td><b>Reset</b></td>
+                        <td colspan="2"><i>Space</i></td>
+                    </tr>
+                </table>
+            </td>
+            <td>
+                <ul>
+                    <li><input type="radio" name="op" id="tra" checked>Translate</input></li>
+                    <li><input type="radio" name="op" id="rot">Rotate</input></li>
+                    <li><input type="radio" name="op" id="sca">Scale</input></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <div class="debug" id="debug">
+                    DEBUG INFO
+                </div>
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>
