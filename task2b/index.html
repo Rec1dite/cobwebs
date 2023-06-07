@@ -47,7 +47,7 @@
     <script type="text/javascript" src="../common/webgl-utils.js"></script>
     <script type="text/javascript" src="../common/initShaders.js"></script>
     <script type="text/javascript" src="../common/MV.js"></script>
-    <script type="text/javascript" src="task2a.js"></script>
+    <script type="text/javascript" src="task2b.js"></script>
 
     <style>
         .loader {
@@ -67,6 +67,14 @@
             width: 100%;
             transition: all 0.2s ease-in;
         }
+
+        .box {
+            display: inline-block;
+            border: 1px solid black;
+            width: fit-content;
+            padding: 0.4em;
+            border-radius: 0.2em;
+        }
     </style>
 
 </head>
@@ -75,6 +83,17 @@
     <canvas id="gl-canvas" width="640" height="512">
         Oops ... your browser doesn't support the HTML5 canvas element
     </canvas>
+    <br /><br />
+    <div class="box" style="margin-right: 1em">
+        <button id="zoomIn">Zoom +</button>
+        <button id="zoomOut">Zoom -</button>
+    </div>
+    <div class="box">
+        <button id="tiltL">Tilt Left</button>
+        <button id="tiltR">Tilt Right</button>
+    </div>
+    <br /><br />
+    <button id="toggleNorms">Disable Normals</button>
     <br /><br />
     <button id="toggleRot">Disable Rotation</button>
     <br /><br />

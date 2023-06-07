@@ -16,14 +16,15 @@ var arrowCols = [];
 
 var imgData = null;
 
-var near = -1;
-var far = 3;
+var near = 0.01;
+var far = -10;
 var radius = 1.0;
 var theta = 90;
 var phi = 0;
 
 var isRot = true;
 var isWire = false;
+var isNorms = true;
 
 var rX = 0.0;
 var rY = 0.0;
@@ -40,6 +41,7 @@ var camera;
 
 const at = vec3(0.0, 0.0, 0.0);
 const up = vec3(0.0, 1.0, 0.0);
+let tilt = 0;
 
 var sampleStep = 1.0;
 
@@ -105,8 +107,9 @@ function addSquare(x, z, y1, y2, y3, y4, yscale, xzScale) {
     let v3 = vec3(sx+xzScale, yscale*y3, sz+xzScale);
     let v4 = vec3(sx+xzScale, yscale*y4, sz);
 
-    let normal1 = scale(0.05, normalize(cross(subtract(v2, v1), subtract(v3, v1))));
-    let normal2 = scale(0.05, normalize(cross(subtract(v3, v1), subtract(v4, v1))));
+    const normScale = 0.01*Math.sqrt(sampleStep);
+    let normal1 = scale(normScale, normalize(cross(subtract(v2, v1), subtract(v3, v1))));
+    let normal2 = scale(normScale, normalize(cross(subtract(v3, v1), subtract(v4, v1))));
 
     // Calculate center of first triangle
     let center1 = scale(0.33, add(add(v1, v2), v3));
@@ -180,11 +183,11 @@ window.onload = function init() {
     let context = previewCanvas.getContext('2d');
 
     document.getElementById('fileInput').addEventListener('change', function(e) {
-        let img = new Image();
-        img.src = URL.createObjectURL(e.target.files[0]);
-
         // Start loader animation
         loader.classList.add("show");
+
+        let img = new Image();
+        img.src = URL.createObjectURL(e.target.files[0]);
 
         img.onload = function() {
             previewCanvas.width = img.width;
@@ -199,6 +202,12 @@ window.onload = function init() {
 
     //===== ADD EVENT LISTENERS =====//
     document.getElementById("mapRes").value = sampleStep;
+
+    let toggleNorms = document.getElementById("toggleNorms")
+    toggleNorms.addEventListener("click", () => {
+        isNorms = !isNorms;
+        toggleNorms.innerHTML = isNorms ? "Disable Normals" : "Enable Normals";
+    });
 
     let toggleWire = document.getElementById("toggleWire")
     toggleWire.addEventListener("click", () => {
@@ -215,6 +224,27 @@ window.onload = function init() {
     let mapRes = document.getElementById("mapRes");
     mapRes.addEventListener("change", e => {
         sampleStep = e.target.value;
+    });
+
+    let zoomIn = document.getElementById("zoomIn");
+    let zoomOut = document.getElementById("zoomOut");
+    let tiltL = document.getElementById("tiltL");
+    let tiltR = document.getElementById("tiltR");
+
+    zoomIn.addEventListener("click", () => {
+        radius -= 0.1;
+    });
+
+    zoomOut.addEventListener("click", () => {
+        radius += 0.1;
+    });
+
+    tiltL.addEventListener("click", () => {
+        tilt += 10;
+    });
+
+    tiltR.addEventListener("click", () => {
+        tilt -= 10;
     });
 }
 
@@ -234,7 +264,6 @@ function reloadCanvas() {
     gl.deleteBuffer(nBuffer);
     gl.deleteBuffer(cBuffer);
     gl.deleteBuffer(vBuffer);
-
 
     //===== CREATE GEOMETRY ======//
     constructPlane();
@@ -278,8 +307,14 @@ var render = (id) => {
     transMat = mult(transMat, rotate(rY, [0, 1, 0]));
     transMat = mult(transMat, rotate(rZ, [0, 0, 1]));
 
-    viewMat = lookAt(camera, at, up);
-    projMat = ortho(left, right, bottom, ytop, near, far);
+    // Rotate the up vector around the camera direction vector
+    const dir = normalize(subtract(at, camera));
+    const rotMat = rotate(tilt, dir);
+    const tiltUp = mult(rotMat, vec4(up, 0)).splice(0, 3);
+
+    viewMat = lookAt(camera, at, tiltUp);
+    // projMat = ortho(left, right, bottom, ytop, near, far);
+    projMat = perspective(90, canvas.width / canvas.height, near, far);
 
     gl.uniformMatrix4fv(transMatLoc, false, flatten(transMat));
     gl.uniformMatrix4fv(viewMatLoc, false, flatten(viewMat));
@@ -292,14 +327,18 @@ var render = (id) => {
         for (let i = 0; i < numVertices; i += 6) {
             gl.drawArrays(gl.LINE_LOOP, i, 6);
         }
-        for (let i = numVertices; i < numVertices+numArrows; i += 2) {
-            gl.drawArrays(gl.LINES, i, 2);
+        if (isNorms) {
+            for (let i = numVertices; i < numVertices+numArrows; i += 2) {
+                gl.drawArrays(gl.LINES, i, 2);
+            }
         }
     }
     else {
         gl.drawArrays(gl.TRIANGLES, 0, numVertices);
-        gl.drawArrays(gl.LINES, numVertices, numArrows);
-        gl.drawArrays(gl.POINTS, numVertices+numArrows, numArrows/2);
+        if (isNorms) {
+            gl.drawArrays(gl.LINES, numVertices, numArrows);
+            gl.drawArrays(gl.POINTS, numVertices+numArrows, numArrows/2);
+        }
     }
 
     // Stop condition
