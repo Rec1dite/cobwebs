@@ -11,6 +11,7 @@ var verts = [];
 var cols = [];
 var norms = [];
 var arrows = [];
+var arrowTips = [];
 var arrowCols = [];
 
 var imgData = null;
@@ -52,6 +53,8 @@ function constructPlane() {
     // Reset lists
     verts = [];
     arrows = [];
+    arrowTips = [];
+    arrowCols = [];
     cols = [];
     norms = [];
     numVertices = 0;
@@ -113,10 +116,14 @@ function addSquare(x, z, y1, y2, y3, y4, yscale, xzScale) {
     arrows.push(...add(center1, normal1), 1);
     arrows.push(...center2, 1);
     arrows.push(...add(center2, normal2), 1);
-    arrowCols.push(...arrowCol, 1);
-    arrowCols.push(...arrowCol, 1);
-    arrowCols.push(...arrowCol, 1);
-    arrowCols.push(...arrowCol, 1);
+
+    arrowTips.push(...add(center2, normal2), 1);
+    arrowTips.push(...add(center2, normal2), 1);
+
+    for (let i = 0; i < 6; i++) {
+        arrowCols.push(...arrowCol, 1);
+    }
+
     numArrows += 4;
 
     // Triangle 1
@@ -237,7 +244,7 @@ function reloadCanvas() {
 
     // setupGLAttrib(nBuffer, norms, "vNormal", 3);
     setupGLAttrib(cBuffer, cols.concat(arrowCols), "vColor", 4);
-    setupGLAttrib(vBuffer, verts.concat(arrows), "vPosition", 4);
+    setupGLAttrib(vBuffer, verts.concat(arrows).concat(arrowTips), "vPosition", 4);
     // setupGLAttrib(cBuffer, arrowCols, "vColor", 4);
     // setupGLAttrib(vBuffer, arrows, "vPosition", 4);
 
@@ -292,6 +299,7 @@ var render = (id) => {
     else {
         gl.drawArrays(gl.TRIANGLES, 0, numVertices);
         gl.drawArrays(gl.LINES, numVertices, numArrows);
+        gl.drawArrays(gl.POINTS, numVertices+numArrows, numArrows/2);
     }
 
     // Stop condition
