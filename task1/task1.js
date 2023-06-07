@@ -82,6 +82,10 @@ function constructPlane() {
     }
 }
 
+function clamp(x, min, max) {
+    return Math.min(Math.max(x, min), max);
+}
+
 function addSquare(x, z, y1, y2, y3, y4, yscale, scale) {
     const sx = scale*x;
     const sz = scale*z;
@@ -143,6 +147,7 @@ window.onload = function init() {
     loader = document.getElementById("loader");
     let previewCanvas = document.getElementById('previewCanvas');
     let context = previewCanvas.getContext('2d');
+    sampleStep = 1.0;
 
     document.getElementById('fileInput').addEventListener('change', function(e) {
         let img = new Image();
@@ -179,7 +184,7 @@ window.onload = function init() {
 
     let mapRes = document.getElementById("mapRes");
     mapRes.addEventListener("change", e => {
-        sampleStep = e.target.value;
+        sampleStep = clamp(e.target.value, 1, 100);
     });
 }
 

@@ -204,6 +204,7 @@ window.onload = function init() {
     loader = document.getElementById("loader");
     let previewCanvas = document.getElementById('previewCanvas');
     let context = previewCanvas.getContext('2d');
+    sampleStep = 1.0;
 
     document.getElementById('fileInput').addEventListener('change', function(e) {
         // Start loader animation

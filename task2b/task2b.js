@@ -93,6 +93,10 @@ function constructPlane() {
     }
 }
 
+function clamp(x, min, max) {
+    return Math.min(Math.max(x, min), max);
+}
+
 function addSquare(x, z, y1, y2, y3, y4, yscale, xzScale) {
     const sx = xzScale*x;
     const sz = xzScale*z;
@@ -181,6 +185,7 @@ window.onload = function init() {
     loader = document.getElementById("loader");
     let previewCanvas = document.getElementById('previewCanvas');
     let context = previewCanvas.getContext('2d');
+    sampleStep = 1.0;
 
     document.getElementById('fileInput').addEventListener('change', function(e) {
         // Start loader animation
