@@ -8,7 +8,6 @@ var numVertices = 0;
 // The final lists that are sent to the gpu buffers
 var verts = [];
 var cols = [];
-var norms = [];
 var imgData = null;
 
 var near = -1;
@@ -49,7 +48,6 @@ function constructPlane() {
     // Reset lists
     verts = [];
     cols = [];
-    norms = [];
 
     let w = imgData.width / sampleStep;
     let h = imgData.height / sampleStep;
@@ -100,7 +98,6 @@ function addSquare(x, z, y1, y2, y3, y4, yscale, scale) {
 
     for (let i = 0; i < 3; i++) {
         cols.push(col1[0], col1[1], col1[2], 1);
-        norms.push(0, 1, 0);
     }
 
     // Triangle 2
@@ -110,7 +107,6 @@ function addSquare(x, z, y1, y2, y3, y4, yscale, scale) {
 
     for (let i = 0; i < 3; i++) {
         cols.push(col2[0], col2[1], col2[2], 1);
-        norms.push(0, 1, 0);
     }
 
     numVertices += 6;
@@ -168,7 +164,8 @@ window.onload = function init() {
     }, false);
 
     //===== ADD EVENT LISTENERS =====//
-    document.getElementById("mapRes").value = sampleStep;
+    let mapRes = document.getElementById("mapRes");
+    mapRes.value = sampleStep;
 
     let toggleWire = document.getElementById("toggleWire")
     toggleWire.addEventListener("click", () => {
@@ -182,7 +179,6 @@ window.onload = function init() {
         toggleRot.innerHTML = isRot ? "Disable Rotation" : "Enable Rotation";
     });
 
-    let mapRes = document.getElementById("mapRes");
     mapRes.addEventListener("change", e => {
         sampleStep = clamp(e.target.value, 1, 100);
     });
@@ -212,7 +208,6 @@ function reloadCanvas() {
     //===== CREATE BUFFERS =====//
     // normals
 
-    // setupGLAttrib(nBuffer, norms, "vNormal", 3);
     setupGLAttrib(cBuffer, cols, "vColor", 4);
     setupGLAttrib(vBuffer, verts, "vPosition", 4);
 

@@ -3,7 +3,6 @@
 <head>
     <!-- <meta http-equiv="refresh" content="1"> -->
     <script id="vertex-shader" type="x-shader/x-vertex">
-    attribute vec3 vNormal;
     attribute vec4 vPosition;
     attribute vec4 vColor;
     varying vec4 fColor;
@@ -28,7 +27,6 @@
         gl_Position = projMatrix * viewMatrix * transMatrix * vPosition;
         float k = min(max(dot(L, vec3(0, 1, 0)), 0.2), 1.0);
         fColor = vColor * k;
-        // fColor = transMatrix * vec4(vNormal, 1.0);
     } 
 </script>
 
@@ -89,8 +87,15 @@
         <button id="zoomOut">Zoom -</button>
     </div>
     <div class="box">
+        <button id="tiltU">Tilt Up</button>
+        <button id="tiltD">Tilt Down</button>
+    </div>
+    <div class="box">
         <button id="tiltL">Tilt Left</button>
         <button id="tiltR">Tilt Right</button>
+    </div>
+    <div class="box">
+        <button id="tiltReset">Reset Tilt</button>
     </div>
     <br /><br />
     <button id="toggleNorms">Enable Normals</button>

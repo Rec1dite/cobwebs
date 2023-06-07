@@ -9,7 +9,6 @@ var numArrows = 0;
 // The final lists that are sent to the gpu buffers
 var verts = [];
 var cols = [];
-var norms = [];
 var arrows = [];
 var arrowTips = [];
 var arrowCols = [];
@@ -56,7 +55,6 @@ function constructPlane() {
     arrowTips = [];
     arrowCols = [];
     cols = [];
-    norms = [];
     numVertices = 0;
     numArrows = 0;
 
@@ -203,7 +201,8 @@ window.onload = function init() {
     }, false);
 
     //===== ADD EVENT LISTENERS =====//
-    document.getElementById("mapRes").value = sampleStep;
+    let mapRes = document.getElementById("mapRes");
+    mapRes.value = sampleStep;
 
     let toggleWire = document.getElementById("toggleWire")
     toggleWire.addEventListener("click", () => {
@@ -217,7 +216,6 @@ window.onload = function init() {
         toggleRot.innerHTML = isRot ? "Disable Rotation" : "Enable Rotation";
     });
 
-    let mapRes = document.getElementById("mapRes");
     mapRes.addEventListener("change", e => {
         sampleStep = clamp(e.target.value, 1, 100);
     });
@@ -247,7 +245,6 @@ function reloadCanvas() {
     //===== CREATE BUFFERS =====//
     // normals
 
-    // setupGLAttrib(nBuffer, norms, "vNormal", 3);
     setupGLAttrib(cBuffer, cols.concat(arrowCols), "vColor", 4);
     setupGLAttrib(vBuffer, verts.concat(arrows).concat(arrowTips), "vPosition", 4);
     // setupGLAttrib(cBuffer, arrowCols, "vColor", 4);

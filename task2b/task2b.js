@@ -9,7 +9,6 @@ var numArrows = 0;
 // The final lists that are sent to the gpu buffers
 var verts = [];
 var cols = [];
-var norms = [];
 var arrows = [];
 var arrowTips = [];
 var arrowCols = [];
@@ -41,7 +40,8 @@ var camera;
 
 const at = vec3(0.0, 0.0, 0.0);
 const up = vec3(0.0, 1.0, 0.0);
-let tilt = 0;
+let tiltZ = 0;
+let tiltX = 0;
 
 var sampleStep = 1.0;
 
@@ -58,7 +58,6 @@ function constructPlane() {
     arrowTips = [];
     arrowCols = [];
     cols = [];
-    norms = [];
     numVertices = 0;
     numArrows = 0;
 
@@ -206,7 +205,8 @@ window.onload = function init() {
     }, false);
 
     //===== ADD EVENT LISTENERS =====//
-    document.getElementById("mapRes").value = sampleStep;
+    let mapRes = document.getElementById("mapRes");
+    mapRes.value = sampleStep;
 
     let toggleNorms = document.getElementById("toggleNorms")
     toggleNorms.addEventListener("click", () => {
@@ -226,31 +226,26 @@ window.onload = function init() {
         toggleRot.innerHTML = isRot ? "Disable Rotation" : "Enable Rotation";
     });
 
-    let mapRes = document.getElementById("mapRes");
     mapRes.addEventListener("change", e => {
         sampleStep = clamp(e.target.value, 1, 100);
     });
 
     let zoomIn = document.getElementById("zoomIn");
     let zoomOut = document.getElementById("zoomOut");
+    let tiltU = document.getElementById("tiltU");
+    let tiltD = document.getElementById("tiltD");
     let tiltL = document.getElementById("tiltL");
     let tiltR = document.getElementById("tiltR");
+    let tiltReset = document.getElementById("tiltReset");
 
-    zoomIn.addEventListener("click", () => {
-        radius -= 0.1;
-    });
+    zoomIn.addEventListener("click", () => { radius -= 0.1; });
+    zoomOut.addEventListener("click", () => { radius += 0.1; });
 
-    zoomOut.addEventListener("click", () => {
-        radius += 0.1;
-    });
-
-    tiltL.addEventListener("click", () => {
-        tilt += 10;
-    });
-
-    tiltR.addEventListener("click", () => {
-        tilt -= 10;
-    });
+    tiltU.addEventListener("click", () => { tiltX -= 10; });
+    tiltD.addEventListener("click", () => { tiltX += 10; });
+    tiltL.addEventListener("click", () => { tiltZ += 10; });
+    tiltR.addEventListener("click", () => { tiltZ -= 10; });
+    tiltReset.addEventListener("click", () => { tiltX = 0; tiltZ = 0; });
 }
 
 function setupGLAttrib(buffer, arrData, attribName, chunkSize) {
@@ -276,7 +271,6 @@ function reloadCanvas() {
     //===== CREATE BUFFERS =====//
     // normals
 
-    // setupGLAttrib(nBuffer, norms, "vNormal", 3);
     setupGLAttrib(cBuffer, cols.concat(arrowCols), "vColor", 4);
     setupGLAttrib(vBuffer, verts.concat(arrows).concat(arrowTips), "vPosition", 4);
     // setupGLAttrib(cBuffer, arrowCols, "vColor", 4);
@@ -314,10 +308,12 @@ var render = (id) => {
 
     // Rotate the up vector around the camera direction vector
     const dir = normalize(subtract(at, camera));
-    const rotMat = rotate(tilt, dir);
-    const tiltUp = mult(rotMat, vec4(up, 0)).splice(0, 3);
+    const rotZMat = rotate(tiltZ, dir);
+    const tiltUp = mult(rotZMat, vec4(up, 0)).splice(0, 3);
+    const rotXMat = rotate(tiltX, cross(dir, up));
+    const tiltCam = mult(rotXMat, vec4(camera, 0)).splice(0, 3);
 
-    viewMat = lookAt(camera, at, tiltUp);
+    viewMat = lookAt(tiltCam, at, tiltUp);
     // projMat = ortho(left, right, bottom, ytop, near, far);
     projMat = perspective(90, canvas.width / canvas.height, near, far);
 
