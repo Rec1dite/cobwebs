@@ -214,7 +214,7 @@ window.onload = function init() {
 
     let mapRes = document.getElementById("mapRes");
     mapRes.addEventListener("change", e => {
-        sampleStep = e.target.value;
+        sampleStep = clamp(e.target.value, 1, 100);
     });
 }
 

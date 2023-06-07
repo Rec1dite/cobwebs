@@ -24,7 +24,7 @@ var phi = 0;
 
 var isRot = true;
 var isWire = false;
-var isNorms = true;
+var isNorms = false;
 
 var rX = 0.0;
 var rY = 0.0;
@@ -93,13 +93,15 @@ function constructPlane() {
     }
 }
 
+function clamp(x, min, max) {
+    return Math.min(Math.max(x, min), max);
+}
+
 function addSquare(x, z, y1, y2, y3, y4, yscale, xzScale) {
     const sx = xzScale*x;
     const sz = xzScale*z;
 
-    const col1 = [1, 0, 0];
-    const col2 = [0, 0, 1];
-    const arrowCol = [1, 1, 0];
+    const arrowCol = [0, 0, 0];
 
     // Calculate normal
     let v1 = vec3(sx, yscale*y1, sz);
@@ -108,12 +110,33 @@ function addSquare(x, z, y1, y2, y3, y4, yscale, xzScale) {
     let v4 = vec3(sx+xzScale, yscale*y4, sz);
 
     const normScale = 0.01*Math.sqrt(sampleStep);
-    let normal1 = scale(normScale, normalize(cross(subtract(v2, v1), subtract(v3, v1))));
-    let normal2 = scale(normScale, normalize(cross(subtract(v3, v1), subtract(v4, v1))));
+    let normal1 = normalize(cross(subtract(v2, v1), subtract(v3, v1)));
+    let normal2 = normalize(cross(subtract(v3, v1), subtract(v4, v1)));
 
     // Calculate center of first triangle
     let center1 = scale(0.33, add(add(v1, v2), v3));
     let center2 = scale(0.33, add(add(v1, v3), v4));
+
+    const e3 = ([0.0, 1.0, 1.0]);
+    const e2 = ([1.0, 0.0, 1.0]);
+    const e1 = ([1.0, 1.0, 0.0]);
+    const minBrightness = 0.2;
+    const maxBrightness = 0.95;
+
+    const col1 = [
+        clamp(dot(e1, normal1), minBrightness, maxBrightness),
+        clamp(dot(e2, normal1), minBrightness, maxBrightness),
+        clamp(dot(e3, normal1), minBrightness, maxBrightness)
+    ];
+
+    const col2 = [
+        clamp(dot(e1, normal2), minBrightness, maxBrightness),
+        clamp(dot(e2, normal2), minBrightness, maxBrightness),
+        clamp(dot(e3, normal2), minBrightness, maxBrightness)
+    ];
+
+    normal1 = scale(normScale, normal1);
+    normal2 = scale(normScale, normal2);
 
     arrows.push(...center1, 1);
     arrows.push(...add(center1, normal1), 1);
@@ -223,7 +246,7 @@ window.onload = function init() {
 
     let mapRes = document.getElementById("mapRes");
     mapRes.addEventListener("change", e => {
-        sampleStep = e.target.value;
+        sampleStep = clamp(e.target.value, 1, 100);
     });
 
     let zoomIn = document.getElementById("zoomIn");
@@ -271,7 +294,7 @@ function reloadCanvas() {
     //===== CREATE BUFFERS =====//
     // normals
 
-    // setupGLAttrib(nBuffer, norms, "vNormal", 3);
+    setupGLAttrib(nBuffer, norms, "vNormal", 3);
     setupGLAttrib(cBuffer, cols.concat(arrowCols), "vColor", 4);
     setupGLAttrib(vBuffer, verts.concat(arrows).concat(arrowTips), "vPosition", 4);
     // setupGLAttrib(cBuffer, arrowCols, "vColor", 4);
