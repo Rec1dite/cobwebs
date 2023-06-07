@@ -231,8 +231,7 @@ window.onload = function init() {
 var render = function () {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    camera = vec3(radius * Math.sin(phi), radius * Math.sin(theta),
-        radius * Math.cos(phi));
+    camera = vec3(radius * Math.sin(phi), radius * Math.sin(theta), radius * Math.cos(phi));
 
     let transMat = mat4();
     // transMat = mult(transMat, scale([1, 1, 1, 1], [1, 1, 1, 1]));
